@@ -1,6 +1,6 @@
 ---
 title: "RBOB Gasoline"
-subtitle: Luke Talman, Olivier Hayley, Connor Beebe
+subtitle: Luke Talman, Olivier Haley, Connor Beebe
 ---
 
 ```{=html}
