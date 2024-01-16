@@ -14,6 +14,8 @@ about:
       href: https://github.com/cbeebe27
     - text: Mobile (403-614-3702)
       icon: telephone
+    - text: LinkedIn
+      icon: linkedin
 ---
 
 My academic and professional journey in finance, guided by my experience as a former NCAA hockey player, has shaped me into a dedicated and collaborative individual. Currently completing my BCom in Finance Honors at the University of Alberta, I'm deeply interested in trading, risk management, digital finance, and portfolio management.
