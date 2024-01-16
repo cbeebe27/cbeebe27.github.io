@@ -1,5 +1,5 @@
 ---
-title: "Connor Beebe"
+title: "ABOUT"
 image: profilepic.png
 about: 
   template: jolla
@@ -12,12 +12,30 @@ about:
     - text: GitHub
       icon: github
       href: https://github.com/cbeebe27
+    - text: Mobile (403-614-3702)
+      icon: telephone
 ---
 
-This is a Quarto website.
+My academic and professional journey in finance, guided by my experience as a former NCAA hockey player, has shaped me into a dedicated and collaborative individual. Currently completing my BCom in Finance Honors at the University of Alberta, I'm deeply interested in trading, risk management, digital finance, and portfolio management.
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+This site contains related projects and files in the digital finance space, as well as using data analytics to solve different problems and present meaningful data-driven solutions. Topics touched on include:
 
-```{r}
-1 + 1
-```
+Complex Data Analysis
+
+Financial Market & Equity Analysis
+
+Quantitative Trading Models
+
+Energy Trading
+
+Supply & Demand Models
+
+Machine Learning
+
+Predicative Analytics
+
+Webscraping
+
+I believe in continuous learning and applying my knowledge practically, and I'm always open to new challenges and opportunities to grow. As I complete more work and explore different topics, the documents will be uploaded to this site to grow my portfolio.
+
+

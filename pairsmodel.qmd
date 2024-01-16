@@ -3,7 +3,7 @@ title: "Pairs Quant Model"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F,warning = F,message = F, tidy = FALSE, strip.white = TRUE)
+knitr::opts_chunk$set(echo = F,warning = F,message = F, tidy = FALSE, strip.white = TRUE, cache = T)
 library(tidyquant)
 library(tidyverse)
 options("getSymbols.warning4.0" = FALSE)

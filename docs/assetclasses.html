@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>profile - Asset Classes</title>
+<title>Connor Beebe - Asset Classes</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -72,7 +72,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">profile</span>
+    <span class="navbar-title">Connor Beebe</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -85,13 +85,15 @@ ul.task-list li input[type="checkbox"] {
     <a class="nav-link" href="./index.html" rel="" target="">
  <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./about.html" rel="" target="">
- <span class="menu-text">About</span></a>
-  </li>  
+  <li class="dropdown-header">
+ <span class="menu-text">about.qmd</span></li>
   <li class="nav-item">
     <a class="nav-link" href="./pairsmodel.html" rel="" target="">
  <span class="menu-text">Pairs Quant Model</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./RBOBproj.html" rel="" target="">
+ <span class="menu-text">RBOB Gasoline</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link active" href="./assetclasses.html" rel="" target="" aria-current="page">
@@ -173,51 +175,51 @@ ul.task-list li input[type="checkbox"] {
 <section id="findings" class="level3">
 <h3 class="anchored" data-anchor-id="findings"><strong>Findings</strong></h3>
 <p>To frame the analysis that follows, below is a chart that may prove helpful to refer to. It includes prices across asset classes since 2014:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-2_b05fc9290e7336e30d1dae0ccac0c7c7">
 <div class="cell-output-display">
 <p><img src="assetclasses_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Histograms are a good representation of the distribution of returns. Returns are categorized by volume within a certain range, then plotted based on the density of the occurrences within those ranges. Below are a series of histograms for all the asset classes being analyzed:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-3_936268b960aae80bddd97a46f06c8b80">
 <div class="cell-output-display">
 <p><img src="assetclasses_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>The shapes of the distributions seem quite similar, apart from a few key differences. One is that Energy Liquids (USO) is clearly less compact around its average return. This points towards higher volatility. Another detail to notice is the black bars below the distributions. These indicate data points. Note that the Real Estate class (VNQ) has many points that occur outside the ‘meat’ of the distribution. This indicates a higher probability of extreme returns in relation to its average return (more susceptible to an event such as a market crash).</p>
 <p>For a better visual comparison of the distribution shapes, here is them all overlapped:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-4_99ea7af577cf7047958b604e0469599f">
 <div class="cell-output-display">
 <p><img src="assetclasses_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>For further context into the volatility of Energy Liquids, here is a chart of daily volatility levels in comparison to its constant volatility over time:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-5_a91b5869b667c150f07a8e49880056e0">
 <div class="cell-output-display">
 <p><img src="assetclasses_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>To take a more in-depth look at the histogram data, distribution moments (average, standard deviation, skewness and kurtosis) are presented in the following table:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-6_079b99158c870c528d1fe299051094ac">
 <div class="cell-output-display">
 
-<div id="vukmolvltq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#vukmolvltq table {
+<div id="etiykpuzpp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#etiykpuzpp table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#vukmolvltq thead, #vukmolvltq tbody, #vukmolvltq tfoot, #vukmolvltq tr, #vukmolvltq td, #vukmolvltq th {
+#etiykpuzpp thead, #etiykpuzpp tbody, #etiykpuzpp tfoot, #etiykpuzpp tr, #etiykpuzpp td, #etiykpuzpp th {
   border-style: none;
 }
 
-#vukmolvltq p {
+#etiykpuzpp p {
   margin: 0;
   padding: 0;
 }
 
-#vukmolvltq .gt_table {
+#etiykpuzpp .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -243,12 +245,12 @@ ul.task-list li input[type="checkbox"] {
   border-left-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_caption {
+#etiykpuzpp .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#vukmolvltq .gt_title {
+#etiykpuzpp .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -260,7 +262,7 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-width: 0;
 }
 
-#vukmolvltq .gt_subtitle {
+#etiykpuzpp .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -272,7 +274,7 @@ ul.task-list li input[type="checkbox"] {
   border-top-width: 0;
 }
 
-#vukmolvltq .gt_heading {
+#etiykpuzpp .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -284,13 +286,13 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_bottom_border {
+#etiykpuzpp .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_col_headings {
+#etiykpuzpp .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -305,7 +307,7 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_col_heading {
+#etiykpuzpp .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -325,7 +327,7 @@ ul.task-list li input[type="checkbox"] {
   overflow-x: hidden;
 }
 
-#vukmolvltq .gt_column_spanner_outer {
+#etiykpuzpp .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -337,15 +339,15 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 4px;
 }
 
-#vukmolvltq .gt_column_spanner_outer:first-child {
+#etiykpuzpp .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vukmolvltq .gt_column_spanner_outer:last-child {
+#etiykpuzpp .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vukmolvltq .gt_column_spanner {
+#etiykpuzpp .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -357,11 +359,11 @@ ul.task-list li input[type="checkbox"] {
   width: 100%;
 }
 
-#vukmolvltq .gt_spanner_row {
+#etiykpuzpp .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#vukmolvltq .gt_group_heading {
+#etiykpuzpp .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -387,7 +389,7 @@ ul.task-list li input[type="checkbox"] {
   text-align: left;
 }
 
-#vukmolvltq .gt_empty_group_heading {
+#etiykpuzpp .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -402,15 +404,15 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 
-#vukmolvltq .gt_from_md > :first-child {
+#etiykpuzpp .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vukmolvltq .gt_from_md > :last-child {
+#etiykpuzpp .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vukmolvltq .gt_row {
+#etiykpuzpp .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -429,7 +431,7 @@ ul.task-list li input[type="checkbox"] {
   overflow-x: hidden;
 }
 
-#vukmolvltq .gt_stub {
+#etiykpuzpp .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -442,7 +444,7 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#vukmolvltq .gt_stub_row_group {
+#etiykpuzpp .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -456,15 +458,15 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: top;
 }
 
-#vukmolvltq .gt_row_group_first td {
+#etiykpuzpp .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#vukmolvltq .gt_row_group_first th {
+#etiykpuzpp .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#vukmolvltq .gt_summary_row {
+#etiykpuzpp .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -474,16 +476,16 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#vukmolvltq .gt_first_summary_row {
+#etiykpuzpp .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_first_summary_row.thick {
+#etiykpuzpp .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#vukmolvltq .gt_last_summary_row {
+#etiykpuzpp .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -493,7 +495,7 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_grand_summary_row {
+#etiykpuzpp .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -503,7 +505,7 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#vukmolvltq .gt_first_grand_summary_row {
+#etiykpuzpp .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -513,7 +515,7 @@ ul.task-list li input[type="checkbox"] {
   border-top-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_last_grand_summary_row_top {
+#etiykpuzpp .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -523,11 +525,11 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_striped {
+#etiykpuzpp .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vukmolvltq .gt_table_body {
+#etiykpuzpp .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -536,7 +538,7 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_footnotes {
+#etiykpuzpp .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -550,7 +552,7 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_footnote {
+#etiykpuzpp .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -559,7 +561,7 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#vukmolvltq .gt_sourcenotes {
+#etiykpuzpp .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -573,7 +575,7 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#vukmolvltq .gt_sourcenote {
+#etiykpuzpp .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -581,63 +583,63 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#vukmolvltq .gt_left {
+#etiykpuzpp .gt_left {
   text-align: left;
 }
 
-#vukmolvltq .gt_center {
+#etiykpuzpp .gt_center {
   text-align: center;
 }
 
-#vukmolvltq .gt_right {
+#etiykpuzpp .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vukmolvltq .gt_font_normal {
+#etiykpuzpp .gt_font_normal {
   font-weight: normal;
 }
 
-#vukmolvltq .gt_font_bold {
+#etiykpuzpp .gt_font_bold {
   font-weight: bold;
 }
 
-#vukmolvltq .gt_font_italic {
+#etiykpuzpp .gt_font_italic {
   font-style: italic;
 }
 
-#vukmolvltq .gt_super {
+#etiykpuzpp .gt_super {
   font-size: 65%;
 }
 
-#vukmolvltq .gt_footnote_marks {
+#etiykpuzpp .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#vukmolvltq .gt_asterisk {
+#etiykpuzpp .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#vukmolvltq .gt_indent_1 {
+#etiykpuzpp .gt_indent_1 {
   text-indent: 5px;
 }
 
-#vukmolvltq .gt_indent_2 {
+#etiykpuzpp .gt_indent_2 {
   text-indent: 10px;
 }
 
-#vukmolvltq .gt_indent_3 {
+#etiykpuzpp .gt_indent_3 {
   text-indent: 15px;
 }
 
-#vukmolvltq .gt_indent_4 {
+#etiykpuzpp .gt_indent_4 {
   text-indent: 20px;
 }
 
-#vukmolvltq .gt_indent_5 {
+#etiykpuzpp .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -710,40 +712,40 @@ ul.task-list li input[type="checkbox"] {
 <p>The table highlights the mean (average) returns, standard deviation (volatility), skewness and kurtosis. Skewness is how skewed to the left or right of the average the distribution is. Kurtosis is how frequently events occur that are considered extreme compared to what a normal distribution would predict. Normal distributions have skewness of 0 and kurtosis of 3. Varying levels of negative skew is seen across all assets, with Long Term Bonds sitting very close to 0. Kurtosis levels differ drastically, with Real Estate exhibiting the most (as mentioned previously above).</p>
 <p>Although gold and Long Term Bonds exhibit the least extreme values above, none of these assets appear consistent with a normal distribution.</p>
 <p>Below is a static Correlation Matrix between all asset classes:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-7_00ed485ddf0cfcdb9087022340f4d272">
 <div class="cell-output-display">
 <p><img src="assetclasses_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Note the highest static correlation appears to be between Real Estate and US Equities.</p>
 <p>Further analysis on the correlation between Energy Liquids and Gold has found that the correlation differs over time. Windows of 25, 75, and 252 days were used, plotted against the static correlation found in the above matrix:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-8_f8c6abf9c6a12b097cc5cf10611b51d8">
 <div class="cell-output-display">
 <p><img src="assetclasses_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>This highlights that the volatility of the correlation between Gold and Energy Liquids varies over time. It is significantly amplified when measured over a shorter window.</p>
 <p>To reliably test whether each asset class matches a normal distribution, the Jarque-Bera Normality Test has been computed. If the statistic is 0, then the data follows a normal distribution. Here are the results from the test:</p>
-<div class="cell">
+<div class="cell" data-hash="assetclasses_cache/html/unnamed-chunk-9_4238ec0dbaa0b24d4732ebb480e13101">
 <div class="cell-output-display">
 
-<div id="ykrwwjlyfy" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ykrwwjlyfy table {
+<div id="cnbmzqbrsr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#cnbmzqbrsr table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#ykrwwjlyfy thead, #ykrwwjlyfy tbody, #ykrwwjlyfy tfoot, #ykrwwjlyfy tr, #ykrwwjlyfy td, #ykrwwjlyfy th {
+#cnbmzqbrsr thead, #cnbmzqbrsr tbody, #cnbmzqbrsr tfoot, #cnbmzqbrsr tr, #cnbmzqbrsr td, #cnbmzqbrsr th {
   border-style: none;
 }
 
-#ykrwwjlyfy p {
+#cnbmzqbrsr p {
   margin: 0;
   padding: 0;
 }
 
-#ykrwwjlyfy .gt_table {
+#cnbmzqbrsr .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -769,12 +771,12 @@ ul.task-list li input[type="checkbox"] {
   border-left-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_caption {
+#cnbmzqbrsr .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#ykrwwjlyfy .gt_title {
+#cnbmzqbrsr .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -786,7 +788,7 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-width: 0;
 }
 
-#ykrwwjlyfy .gt_subtitle {
+#cnbmzqbrsr .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -798,7 +800,7 @@ ul.task-list li input[type="checkbox"] {
   border-top-width: 0;
 }
 
-#ykrwwjlyfy .gt_heading {
+#cnbmzqbrsr .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -810,13 +812,13 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_bottom_border {
+#cnbmzqbrsr .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_col_headings {
+#cnbmzqbrsr .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -831,7 +833,7 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_col_heading {
+#cnbmzqbrsr .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -851,7 +853,7 @@ ul.task-list li input[type="checkbox"] {
   overflow-x: hidden;
 }
 
-#ykrwwjlyfy .gt_column_spanner_outer {
+#cnbmzqbrsr .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -863,15 +865,15 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 4px;
 }
 
-#ykrwwjlyfy .gt_column_spanner_outer:first-child {
+#cnbmzqbrsr .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ykrwwjlyfy .gt_column_spanner_outer:last-child {
+#cnbmzqbrsr .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ykrwwjlyfy .gt_column_spanner {
+#cnbmzqbrsr .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -883,11 +885,11 @@ ul.task-list li input[type="checkbox"] {
   width: 100%;
 }
 
-#ykrwwjlyfy .gt_spanner_row {
+#cnbmzqbrsr .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#ykrwwjlyfy .gt_group_heading {
+#cnbmzqbrsr .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -913,7 +915,7 @@ ul.task-list li input[type="checkbox"] {
   text-align: left;
 }
 
-#ykrwwjlyfy .gt_empty_group_heading {
+#cnbmzqbrsr .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -928,15 +930,15 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 
-#ykrwwjlyfy .gt_from_md > :first-child {
+#cnbmzqbrsr .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ykrwwjlyfy .gt_from_md > :last-child {
+#cnbmzqbrsr .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ykrwwjlyfy .gt_row {
+#cnbmzqbrsr .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -955,7 +957,7 @@ ul.task-list li input[type="checkbox"] {
   overflow-x: hidden;
 }
 
-#ykrwwjlyfy .gt_stub {
+#cnbmzqbrsr .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -968,7 +970,7 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#ykrwwjlyfy .gt_stub_row_group {
+#cnbmzqbrsr .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -982,15 +984,15 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: top;
 }
 
-#ykrwwjlyfy .gt_row_group_first td {
+#cnbmzqbrsr .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#ykrwwjlyfy .gt_row_group_first th {
+#cnbmzqbrsr .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#ykrwwjlyfy .gt_summary_row {
+#cnbmzqbrsr .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1000,16 +1002,16 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#ykrwwjlyfy .gt_first_summary_row {
+#cnbmzqbrsr .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_first_summary_row.thick {
+#cnbmzqbrsr .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#ykrwwjlyfy .gt_last_summary_row {
+#cnbmzqbrsr .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1019,7 +1021,7 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_grand_summary_row {
+#cnbmzqbrsr .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1029,7 +1031,7 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#ykrwwjlyfy .gt_first_grand_summary_row {
+#cnbmzqbrsr .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1039,7 +1041,7 @@ ul.task-list li input[type="checkbox"] {
   border-top-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_last_grand_summary_row_top {
+#cnbmzqbrsr .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1049,11 +1051,11 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_striped {
+#cnbmzqbrsr .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ykrwwjlyfy .gt_table_body {
+#cnbmzqbrsr .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1062,7 +1064,7 @@ ul.task-list li input[type="checkbox"] {
   border-bottom-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_footnotes {
+#cnbmzqbrsr .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1076,7 +1078,7 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_footnote {
+#cnbmzqbrsr .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1085,7 +1087,7 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#ykrwwjlyfy .gt_sourcenotes {
+#cnbmzqbrsr .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1099,7 +1101,7 @@ ul.task-list li input[type="checkbox"] {
   border-right-color: #D3D3D3;
 }
 
-#ykrwwjlyfy .gt_sourcenote {
+#cnbmzqbrsr .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1107,63 +1109,63 @@ ul.task-list li input[type="checkbox"] {
   padding-right: 5px;
 }
 
-#ykrwwjlyfy .gt_left {
+#cnbmzqbrsr .gt_left {
   text-align: left;
 }
 
-#ykrwwjlyfy .gt_center {
+#cnbmzqbrsr .gt_center {
   text-align: center;
 }
 
-#ykrwwjlyfy .gt_right {
+#cnbmzqbrsr .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ykrwwjlyfy .gt_font_normal {
+#cnbmzqbrsr .gt_font_normal {
   font-weight: normal;
 }
 
-#ykrwwjlyfy .gt_font_bold {
+#cnbmzqbrsr .gt_font_bold {
   font-weight: bold;
 }
 
-#ykrwwjlyfy .gt_font_italic {
+#cnbmzqbrsr .gt_font_italic {
   font-style: italic;
 }
 
-#ykrwwjlyfy .gt_super {
+#cnbmzqbrsr .gt_super {
   font-size: 65%;
 }
 
-#ykrwwjlyfy .gt_footnote_marks {
+#cnbmzqbrsr .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#ykrwwjlyfy .gt_asterisk {
+#cnbmzqbrsr .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#ykrwwjlyfy .gt_indent_1 {
+#cnbmzqbrsr .gt_indent_1 {
   text-indent: 5px;
 }
 
-#ykrwwjlyfy .gt_indent_2 {
+#cnbmzqbrsr .gt_indent_2 {
   text-indent: 10px;
 }
 
-#ykrwwjlyfy .gt_indent_3 {
+#cnbmzqbrsr .gt_indent_3 {
   text-indent: 15px;
 }
 
-#ykrwwjlyfy .gt_indent_4 {
+#cnbmzqbrsr .gt_indent_4 {
   text-indent: 20px;
 }
 
-#ykrwwjlyfy .gt_indent_5 {
+#cnbmzqbrsr .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -1194,7 +1196,7 @@ ul.task-list li input[type="checkbox"] {
     <tr class="gt_group_heading_row">
       <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="SPY">SPY</th>
     </tr>
-    <tr class="gt_row_group_first"><td headers="SPY  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">18,636.13</td>
+    <tr class="gt_row_group_first"><td headers="SPY  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">18,636.23</td>
 <td headers="SPY  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
 <td headers="SPY  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
     <tr class="gt_group_heading_row">
@@ -1212,7 +1214,7 @@ ul.task-list li input[type="checkbox"] {
     <tr class="gt_group_heading_row">
       <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="VNQ">VNQ</th>
     </tr>
-    <tr class="gt_row_group_first"><td headers="VNQ  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">84,745.88</td>
+    <tr class="gt_row_group_first"><td headers="VNQ  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">84,745.07</td>
 <td headers="VNQ  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
 <td headers="VNQ  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
   </tbody>

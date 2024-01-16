@@ -31,8 +31,7 @@ Note that throughout the visualizations in this document, the data chosen to rep
 -   None of the asset classes appear consistent with a normal distribution, backed by normality testing.
 
 ```{r setup, include=FALSE, echo=FALSE}
-knitr::opts_chunk$set(message = FALSE)
-knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(echo = F,warning = F,message = F, tidy = FALSE, strip.white = TRUE, cache=T)
 
 # load necessary libraries 
 

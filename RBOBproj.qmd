@@ -1,0 +1,1896 @@
+---
+title: "RBOB Gasoline"
+subtitle: Luke Talman, Olivier Hayley, Connor Beebe
+---
+
+```{=html}
+<style type="text/css"> body, td {font-size: 12px;} code.r{font-size: 10px;} pre {font-size: 10px} </style>
+```
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = F,warning = F,message = F, tidy = FALSE, strip.white = TRUE, cache=T)
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(RTL)
+library(gridExtra)
+```
+
+```{r}
+EIAkey = "oa57E1u0w4dCRbHt24IKZdpCOfdYF66DM1lW3TWk"
+
+eia <- tibble::tribble(
+  ~ ticker,
+  ~ name, "PET.MDIUPUS1.M", "1", 
+    "PET.MG4UP_NUS_1.M", "2",
+  "PET.MGFUPUS1.M", "3", 
+  "PET.MGRUPUS1.M", "4",
+  "PET.MKJUPUS1.M", "5", 
+  "PET.MTTUPUS1.M", "6"
+  ) %>%
+  RTL::eia2tidy_all(tickers = ., key = EIAkey) %>% 
+  filter(date > "2017-12-31") %>% 
+  pivot_wider(names_from = series, values_from = value)
+eia <- eia %>% 
+  dplyr::rename("Distillates" = "PET.MDIUPUS1.M", 
+    "CBOB" = "PET.MG4UP_NUS_1.M",
+  "Gasoline" = "PET.MGFUPUS1.M",
+  "RBOB" = "PET.MGRUPUS1.M",
+  "Jet Fuel" = "PET.MKJUPUS1.M", 
+  "Crude" = "PET.MTTUPUS1.M") 
+eia_long <- pivot_longer(eia, -date, names_to = "series", values_to = "value")
+```
+
+```{r}
+eia_avg <- eia_long %>% 
+  group_by(series) %>% 
+  summarise(average_value = mean(value)) #finding average production values
+total = max(eia_avg$average_value)
+rbob_mix <- eia_avg %>% 
+  mutate( prop = average_value/total) %>% # Finding proportion of total
+  filter(prop != 1, series != "RBOB", series != "CBOB") %>% 
+  select(-average_value) 
+remaining_prop <- 1 - sum(rbob_mix$prop) # Finding remaining products
+rbob_mix <- rbind(rbob_mix, data.frame(series = "Gas Liquids & Other", prop = remaining_prop))
+
+# Convert "prop" to percentages
+rbob_mix <- rbob_mix %>%
+  dplyr::mutate(
+    dplyr::across(.cols = where(is.numeric),
+                  .fns = ~ round(.x,2))) # Rounding to 2 decimals
+```
+
+```{r}
+gas_mix <- eia_avg %>% 
+  filter(series != "Crude", series != "Distillates", series != "Jet Fuel", series != "Gasoline") %>% 
+  dplyr::mutate(prop = average_value/sum(average_value)) %>% 
+  dplyr::select(-average_value) 
+```
+
+##### What it is RBOB and why does it matter?
+
+-   Reformulated Blendstock for Oxygenate Blending (RBOB) is a product derived from Crude Oil. It is intended for blending with oxygenates in order to attain a finished reformulated gasoline.
+
+-   Before becoming market ready, gasoline is transported as RBOB or Conventional Blendstock of Oxygenate Blending (CBOB). RBOB is more common in places with higher environmental restrictions.
+
+-   RBOB + 10% Ethanol + Additives = Marketable Gasoline
+
+-   RBOB futures are used by traders to profit from or hedge their exposure to price changes.
+
+-   The RBOB futures market is based in NY Harbor, an area with regulations requiring reformulated gasoline.
+
+```{r, fig.width=7,fig.height=2.3}
+library(patchwork)
+plot_3 <- ggplot(rbob_mix, aes(x = "", y = prop, fill = series)) +
+  geom_bar(stat = "identity") +
+  labs(title = "US Crude Oil Product Mix (2017-2023)", x = "", y = "Proportion", fill = "Product") +
+  geom_text(aes(label = scales::percent(prop)),  # Format labels as percentages
+          position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values = c("Gasoline" = "purple", "Distillates" = "grey", "Jet Fuel" = "lightgrey", "Gas Liquids & Other" = "grey45")) +
+  theme_void()
+plot_4 <- ggplot(gas_mix, aes(x = "", y = prop, fill = series)) +
+  geom_bar(stat = "identity") +
+  labs(title = "US Gasoline Mix (2017-2023)", x = "", y = "", fill = "Product", caption = expression(italic("Source: Data via EIA"))) +
+  geom_text(aes(label = scales::percent(prop)),  # Format labels as percentages
+        position = position_stack(vjust = 0.5)) +
+
+  scale_fill_manual(values = c("RBOB" = "maroon", "CBOB" = "lightblue3")) +
+  theme_void() 
+plot_3 | plot_4
+```
+
+```{=html}
+<div style="display: flex;">
+    <div style="flex: 1; padding-right: 10px;">
+        <h4>Production Process</h4>
+        <ul>
+          <li>Crude oil input:</li>
+          <ul>
+            <li>Separated into fractions based upon boiling point</li>
+            <li>Gasoline blending components are lighter weight with a lower boiling point</li>
+            <li>Once separated, gasoline components go through additional processing to create gasoline blends, including RBOB</li>
+            <li>Blends have varying characteristics, such as Octane level, chemical composition, and vapor pressure rating, per regulation and seasonal requirements</li>
+            </ul>
+        </ul>
+    </div>
+    <div style="flex: 1;">
+    <br>
+    <br>
+        <img src="https://www.eia.gov/energyexplained/oil-and-petroleum-products/images/Crude-oil-distillation-unit-and-products.png" width="75%" height="75%">
+    </div>
+</div>
+```
+<h4>Consumption</h4>
+
+-   Consumer and industrial behavior influence demand
+-   Downstream companies also influence demand when managing production shortfalls or inventory surplus
+    -   Ex. Refinery needing to fulfill obligations after an unexpected shutdown
+-   Local gas specifications impact regional RBOB stock levels
+
+```{r, echo=FALSE, fig.width=7,fig.height=2, cache=TRUE}
+library(tidyverse)
+library(eia)
+library(RTL)
+
+
+EIAkey = "oa57E1u0w4dCRbHt24IKZdpCOfdYF66DM1lW3TWk"
+
+eia <- (tibble::tribble(
+  ~ ticker,
+  ~ name,
+  "PET.W_EPOBGRR_SAE_R10_MBBL.W",
+  "East Coast",
+  "PET.W_EPOBGRR_SAE_R20_MBBL.W",
+  "Midwest",
+  "PET.W_EPOBGRR_SAE_R30_MBBL.W",
+  "Gulf Coast",
+  "PET.W_EPOBGRR_SAE_R40_MBBL.W",
+  "Rocky Mountain",
+  "PET.W_EPOBGRR_SAE_R50_MBBL.W",
+  "West Coast") %>%
+    dplyr::mutate(key = EIAkey)) %>%
+  eia2tidy_all(eia) %>% 
+  filter(date > "2017-12-31")
+
+
+rbob_stock <- eia %>%
+  ggplot(aes(x = date, y = value, col = series)) +
+  geom_line() + theme_minimal() +
+  labs(title = "Stocks of RBOB by US Region", x = "", y = "Thousands of Barrels", col = "Region", caption = expression(italic("Source: Data via EIA")))
+
+```
+
+```{r, echo=F, warning=F}
+# map
+library(rstudioapi)
+library(ggmap)
+goog.api <- 'AIzaSyBf-jWdycoiGCTmxO1OEz9NAIMmcQWgxJQ'
+register_google(key = goog.api)
+
+
+y <- c(40.804667, 40.670793, 40.852393, 40.577508, 40.741222, 40.735023, 40.509416)
+x <- c(-73.902959, -73.999215, -73.954926, -74.011684, -74.081662, -74.117697, -74.300829)
+ a <- c(40.509416, 40.735023, 40.741222, 40.852393, 40.804667, 40.670793, 40.577508)
+b <- c(-74.300829, -74.117697, -74.081662, -73.954926, -73.902959, -73.999215, -74.011684)
+
+
+point_df <- data.frame(x = b, y = a)
+
+map_plot <- get_googlemap(center = "New York", zoom = 10, markers = point_df, path = point_df, scale = 2) %>% ggmap() + labs(x = "", y = "", title = "RBOB Delivery Zone")
+```
+
+```{r, fig.width=8,fig.height=3}
+rbob_stock|map_plot
+```
+
+\n
+
+```{r, echo=FALSE, message=FALSE, warning=F}
+
+# Table
+library(tidyverse)
+library(gt)
+
+
+Specs <- c("Trading Schedule", "Trading Unit", "Price Imcrements","Termination of Trading", "Delivery")
+
+Details <- c("Sunday - Friday 6:00 p.m. - 5:00 p.m. (5:00 p.m. - 4:00 p.m. CT) with a 60-minute break each day beginning at 5:00 p.m. (4:00 p.m. CT)
+
+TAS: Sunday - Friday 6:00 p.m. - 2:30 p.m. (5:00 p.m. - 1:30 p.m. CT)",
+            "42,000 U.S. gallons (1,000 U.S. barrels)",
+             "Minimum price fluctuation shall be $.0001 per gallon. Prices shall be quoted in dollars and
+cents per gallon.",
+"No trades in RBOB Gasoline futures in the expiring contract month shall be made after the last
+business day of the month preceding the delivery month for such expiring contract. Any contracts
+remaining open after the last day of trading must be either:
+(a) Settled by delivery, fifth business day of delivery month < last day prior to last business day of delivery month; or
+(b) Liquidated by means of a bona fide Exchange for Related Position (“EFRP”) ",
+"Delivery shall be made free-on-board (“F.O.B.”) in NY Harbour.")
+
+
+spec.df <- tibble(Specs, Details)
+
+spec.gt <- spec.df %>% gt() |>
+  tab_header(
+    title = "RBOB Trading Specs") %>% tab_footnote("Source: Nymex Rulebook, Chapter 191")
+
+tbl <- spec.gt %>% tab_options(
+  data_row.padding = px(6),
+  heading.align = 'left',
+  column_labels.background.color = 'dodgerblue4',
+  heading.title.font.size = 26,
+  footnotes.font.size = 8
+) %>% 
+  tab_style(style = cell_text(color = 'dodgerblue4',
+                              weight = 'bold'),
+            locations = cells_title(groups = 'title')) %>% tab_options(table.font.size = 10, heading.title.font.size = 15)
+
+tbl
+
+```
+
+## Summary
+
+```{=html}
+<style type="text/css"> body, td {font-size: 12px;} code.r{font-size: 10px;} pre {font-size: 10px} </style>
+```
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = F,warning = F, message = F, tidy = FALSE, strip.white = TRUE, cache=TRUE)
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(RTL)
+library(gridExtra)
+library(plotly)
+library(prophet)
+```
+
+```{r}
+EIAkey = "oa57E1u0w4dCRbHt24IKZdpCOfdYF66DM1lW3TWk"
+```
+
+### New Trades if any
+
+-   October 25, 2023
+    -   Long December RBOB cx, Short February RBOB cx
+    -   Position Size: 200,000 bbl
+    -   Closed on November 6, 2023
+-   November 10, 2023
+    -   Long January RBOB cx
+    -   Position size: 100,000 bbl
+    -   Closed Nov 22, 2023 (end of game)
+-   November 10, 2023
+    -   Long Dec/March RBOB Spread
+    -   Position size: 150,000 bbl
+    -   Closed November 17
+-   November 17, 2023:
+    -   Long Dec 2023 RBOB 6,300,000 gal
+    -   Short March 2024 RBOB 3,696,000 gal
+    -   Closed Nov 22, 2023 (end of game)
+
+#### Methodology
+
+We are making trading decisions based upon **Gasoline Supply/Demand** changes.
+
+-   RBOB is used by traders to hedge against Gasoline exposure
+
+-   Availability of timely and accurate data
+
+-   High Correlation between RBOB futures and Gasoline prices
+
+```{r, include=FALSE}
+eia <- tibble::tribble(
+  ~ ticker,
+  ~ name, 
+          'PET.EMM_EPM0_PTE_NUS_DPG.W', 'allgrades',
+           'PET.EMM_EPM0R_PTE_R10_DPG.W', 'RBOB'
+  ) %>%
+  RTL::eia2tidy_all(tickers = ., key = EIAkey) %>% 
+  filter(date > "2015-12-31") 
+
+eia <- eia %>% pivot_wider(names_from = series, values_from = value) %>% 
+  mutate(allgrades = allgrades * 42, RBOB = RBOB * 42)
+
+```
+
+```{r}
+# create df 
+df.rollcor <- eia %>% 
+  select(date, RBOB, allgrades) %>%  
+  filter(date > "2017-06-01") %>% 
+  drop_na()
+
+rollcor <- df.rollcor %>% 
+  mutate(cor75 = slider::pslide_dbl(
+    .l = list(allgrades, RBOB),
+    .f = ~ cor(.x, .y,),
+    .before = 25,
+    .after = 0,
+    .complete = T
+  )) %>% 
+  mutate(cor252 = slider::pslide_dbl(
+    .l = list(allgrades, RBOB),
+    .f = ~ cor(.x, .y,),
+    .before = 52,
+    .after = 0,
+    .complete = T
+  )) %>% 
+  drop_na()
+
+# plot it 
+  
+rollcorplot <- rollcor %>%  
+ggplot(aes(x = date, y = cor25)) +
+   geom_line(aes(x = date, y = stats::cor(allgrades, RBOB, method = "kendall"), color = "Static")) +
+  geom_line(aes(x = date, y = cor75, color = "100 days")) +
+  geom_line(aes(x = date, y = cor252, color = "365 days")) + 
+   scale_color_manual(name = "Window",
+                      breaks = c("Static", "100 days", "365 days"),
+                      values = c("orange", "black", "purple", "green")) +
+  labs(title = "Rolling Correlations Between Gasoline (All grades All locations) & RB0B PAD1",
+       x = "", y = "Correlation Coefficient", caption = expression(italic("Source: Data via EIA")))+theme_minimal() 
+
+```
+
+```{r}
+eia <- tibble::tribble(
+  ~ ticker,
+  ~ name, 
+          "PET.WGFRPUS2.W", "Supply",
+          "PET.MGFIMUS2.M", "Imports",
+          "PET.MGFEXUS2.M", "Exports",
+          "PET.WGFUPUS2.W", "Disposition",
+          "PET.MGFUA_NUS_2.M", "Adjustments",
+          "PET.M_EPM0F_YNP_NUS_MBBLD.M", "Biofuels",
+          "PET.MGFSCUS2.M", "Stock_T"
+  ) %>%
+  RTL::eia2tidy_all(tickers = ., key = EIAkey) %>% 
+  filter(date > "2018-12-31") 
+df_sd <- eia
+
+```
+
+```{r}
+df_sd_w <- df_sd %>%
+  tidyr::pivot_wider(date, names_from = series, values_from = value) %>%
+  # arrange by date is required for na.locf() to replace with last observation
+  dplyr::arrange(date) %>%
+  tidyr::fill(Exports, .direction = "down") %>% 
+  tidyr::fill(Imports, .direction = "down") %>% 
+  tidyr::fill(Stock_T, .direction = "down") %>% 
+  tidyr::fill(Adjustments, .direction = "down") %>% 
+  tidyr::fill(Biofuels, .direction = "down") %>% 
+  tidyr::drop_na() %>%
+  dplyr::mutate(Storage = Supply + Imports + Adjustments + Biofuels - Disposition - Exports)
+```
+
+```{r}
+library(gridExtra)
+library(prophet)
+
+fig.title = "Weekly Implied Storage"
+p4_df <- df_sd_w %>%
+  dplyr::mutate(Supply_Total = Supply + Imports + Biofuels + Adjustments) %>% 
+  dplyr::mutate(Demand_Total = Disposition + Exports) %>% 
+  dplyr::mutate(Storage = Storage*4) %>% 
+  select(date, Supply_Total, Demand_Total, Storage) 
+
+p4 <- p4_df %>% plot_ly(x = ~date) %>% 
+  add_trace(y = ~Demand_Total, name = 'Demand', type = 'scatter', mode = 'lines') %>% 
+  add_trace(y = ~Supply_Total, name = 'Supply', type = 'scatter', mode = 'lines') %>% 
+  add_trace(y = ~Storage, name = 'Storage Draws & Fills', type = 'scatter', mode = 'lines', fill = 'tozeroy') %>% 
+  layout(title = list(text = "RBOB SD Balance & Implied Storage Draws & Fills", x = 0),
+         legend = list(x = 0.7, y = 0.63),
+         xaxis = list(title = ''),
+         yaxis = list(title = 'Kbd'))
+  
+  
+  
+p4
+```
+
+#### Supply Forecast Indicators
+
+-   Crude Supply
+
+    -   Declining crack spreads translate to lower refinery earnings and potential losses (rising crude price).
+
+    -   Refineries typically lower output at the end of driving season (summer).
+
+-   Crude Crack Spread
+
+    -   WTI and RBOB moving inversely
+
+    -   Small Crack Spread -\> Profit Margins for refining Crude into products like Gasoline is limited
+
+\n
+
+#### Demand Forecast Indicators
+
+-   Miles Driven
+
+-   Population
+
+-   Disposable Income
+
+```{r, include=FALSE}
+library(patchwork)
+#forcasting work flow
+
+#truncated data to a level that enables multiple comparision models while lessening the impacts of COVID 
+forcast_df <- p4_df %>% 
+  filter(date >= '2021-01-01')
+
+library(forecast)
+ts_supply <- ts(forcast_df$Supply_Total, start = c(2021,01) ,frequency = 52)
+ts_supply_partition <- TSstudio::ts_split(ts_supply,sample.out = 26)
+train_sup <- ts_supply_partition$train
+test_sup <- ts_supply_partition$test
+  
+
+swag <-forcast_df %>% 
+  ggplot(aes(x = date, y = Supply_Total)) + geom_line()
+
+autoplot(ts_supply)/swag
+
+acf_sup <- acf(forcast_df$Supply_Total, main = "ACF Plot", lag.max = 104)
+pacf_sup <- pacf(forcast_df$Supply_Total, main = "PACF Plot", lag.max = 104)
+# suggests trying a seasonal auto regressive ARIMA
+
+
+arima <- auto.arima(train_sup, D = 1)
+checkresiduals(arima)
+#Fail to reject HO, adequate model
+f_autoarima <- forecast(arima, h=26)
+autoplot(f_autoarima)
+accuracy(f_autoarima, test_sup, errorMethod = "RMSE")
+#RMSE  503.0524
+
+stlm <- stlm(train_sup)
+checkresiduals(stlm)
+#Fail to reject HO, adequate model
+f_stlm <- forecast(stlm, h=26)
+autoplot(f_stlm)
+accuracy(f_stlm, test_sup, errorMethod = "RMSE")
+summary(f_stlm)
+#RMSE 348.8049
+
+arima_fullauto <- auto.arima(train_sup)
+checkresiduals(arima)
+f_autoarimafull <- forecast(arima_fullauto, h=26)
+autoplot(f_autoarimafull)
+accuracy(f_autoarimafull, test_sup, errorMethod = "RMSE")
+#RMSE  503.0524
+
+nnetar <- nnetar(train_sup)
+checkresiduals(nnetar)
+#Reject HO, inadequate model
+f_nnetar<- forecast(nnetar, h=26)
+autoplot(f_nnetar)
+accuracy(f_nnetar, test_sup, errorMethod = "RMSE")
+#RMSE 566.01256
+
+#For Supply: STL +  ETS(A,N,N) model selected
+
+
+ts_dem <- ts(forcast_df$Demand_Total, start = c(2021,01) ,frequency = 52)
+ts_dem_partition <- TSstudio::ts_split(ts_dem,sample.out = 26)
+train_dem <- ts_dem_partition$train
+test_dem <- ts_dem_partition$test
+  
+
+swag <-forcast_df %>% 
+  ggplot(aes(x = date, y = Demand_Total)) + geom_line()
+
+autoplot(ts_supply)/swag
+
+acf_sup <- acf(forcast_df$Demand_Total, main = "ACF Plot", lag.max = 104)
+pacf_sup <- pacf(forcast_df$Demand_Total, main = "PACF Plot", lag.max = 104)
+#Again, suggests trying a seasonal auto regressive ARIMA
+
+
+arima <- auto.arima(train_dem, D = 1)
+checkresiduals(arima)
+#Fail to reject HO, adequate model
+f_autoarima <- forecast(arima, h=26)
+autoplot(f_autoarima)
+accuracy(f_autoarima, test_dem, errorMethod = "RMSE")
+#RMSE 494.5117 
+
+stlm <- stlm(train_dem)
+checkresiduals(stlm)
+#Fail to reject HO, adequate model
+f_stlm <- forecast(stlm, h=26)
+autoplot(f_stlm)
+accuracy(f_stlm, test_dem, errorMethod = "RMSE")
+summary(f_stlm)
+#RMSE 442.4721
+
+arima_fullauto <- auto.arima(train_dem)
+checkresiduals(arima)
+f_autoarimafull <- forecast(arima_fullauto, h=26)
+autoplot(f_autoarimafull)
+accuracy(f_autoarimafull, test_dem, errorMethod = "RMSE")
+#RMSE 494.5117 
+
+nnetar <- nnetar(train_sup)
+checkresiduals(nnetar)
+#Fail to reject HO adequate model
+f_nnetar<- forecast(nnetar, h=26)
+autoplot(f_nnetar)
+accuracy(f_nnetar, test_dem, errorMethod = "RMSE")
+#RMSE 525.65480 
+
+#For Demand: STL +  ETS(A,N,N) model selected
+```
+
+```{r, include=FALSE}
+# supply
+sup_forecast <- p4_df
+sup_ts <- ts(p4_df$Supply_Total, start = c(2019,1), frequency = 52)
+stlm <- stlm(sup_ts)
+
+f_sup_stlm <- forecast(stlm, h=52)
+
+autoplot(f_sup_stlm)
+
+max_date <- max(p4_df$date)
+
+
+forcast_dates <- seq(max_date + 7,
+            max_date + 365,
+  by = "1 week")
+
+sup_forcast_df <- as.tibble(f_sup_stlm) %>% 
+  transmute(Supply_Total = `Point Forecast`) %>% 
+  mutate(date = forcast_dates)
+
+# demand
+dem_forecast <- p4_df
+dem_ts <- ts(p4_df$Demand_Total, start = c(2019,1), frequency = 52)
+stlm <- stlm(dem_ts)
+
+f_dem_stlm <- forecast(stlm, h=52)
+
+autoplot(f_dem_stlm)
+
+max_date <- max(p4_df$date)
+
+
+forcast_dates <- seq(max_date + 7,
+            max_date + 365,
+  by = "1 week")
+
+dem_forcast_df <- as.tibble(f_dem_stlm) %>% 
+  transmute(Demand_Total = `Point Forecast`) %>% 
+  mutate(date = forcast_dates) 
+
+
+forcast_df <- right_join(dem_forcast_df, sup_forcast_df, by = "date") %>% 
+  select(date, everything())
+
+forcast_df
+
+
+
+
+```
+
+### Forcast
+
+-   Note: Forcast updates daily and does not necessarily represent the decisions made at a given time.
+
+```{r}
+
+sup_dem <- p4_df %>% transmute(date,
+                    Demand_Total,
+                    Supply_Total)
+
+joined_sup_dem <- rbind(sup_dem, forcast_df) %>% 
+  mutate(Storage = Supply_Total - Demand_Total)
+
+
+
+
+pW <- joined_sup_dem %>% 
+  filter(date >= "2023-07-01") %>% 
+  filter(date <= "2024-03-01") %>%
+  mutate(Storage = Storage*4) %>% 
+  plot_ly(x = ~date) %>% 
+  add_trace(y = ~Demand_Total, name = 'Demand', type = 'scatter', mode = 'lines') %>% 
+  add_trace(y = ~Supply_Total, name = 'Supply', type = 'scatter', mode = 'lines') %>% 
+  add_trace(y = ~Storage, name = 'Storage Draws & Fills', type = 'scatter', mode = 'lines', fill = 'tozeroy') %>% 
+  layout(title = list(text = "RBOB SD Forecast", x = 0),
+         legend = list(x = 0.7, y = 0.63),
+         xaxis = list(title = ''),
+         yaxis = list(title = 'Kbd'),
+         shapes = list(type = "rect",
+                    fillcolor = "#92dff3", line = list(color = "#92dff3"), opacity = 0.3,
+                    x0 = Sys.Date(), x1 = "2024-03-30", xref = "x",
+                    y0 = -2000, y1 = 10500, yref = "y"))
+pW
+```
+
+```{r}
+# Seasonality
+decomp <- decompose(dem_ts) 
+
+df <- unique(decomp$seasonal) %>% 
+  tibble() %>% 
+  mutate(Week = 1:52) %>% 
+  rename(Additive_Index = ".") %>% 
+  ggplot(aes(x = Week, y = Additive_Index)) +
+  labs(y = "Index", title = "Additive Seasonality of Demand")+
+    geom_line()+ theme_minimal()
+```
+
+```{r}
+library(patchwork)
+fig.title1 = "RBOB WTI Crack Spread"
+c = c("CL_001_Month","RB_001_Month")
+from = "2018-01-01"
+mstar <- c('trading@ualberta.ca', '#5GvhnRCvk')
+
+df_fut <- getPrices(feed = "CME_NymexFutures_EOD_continuous",
+                    contracts = c,
+                    from = from, iuser = mstar[[1]], ipassword = mstar[[2]]) %>%
+  dplyr::transmute(date = date,
+                   CL = CL_001_Month,
+                   RBOB = RB_001_Month * 42,
+                   RBOBcx = RBOB - CL_001_Month,) %>% 
+  tidyr::pivot_longer(-date,names_to = "series", values_to = "value") %>% 
+  group_by() %>% 
+  dplyr::filter(series %in% c("CL","RBOB","RBOBcx"))
+  
+p_cx <- df_fut %>% 
+  ggplot(aes(x = date, y = value, color = series)) + 
+  geom_line() +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = fig.title1, y = "Futures Price", x = "", caption = expression(italic("Source: Data via Morning Star")))
+```
+
+```{r}
+library(dplyr)
+library(plotly)
+
+
+crack_rb_ho_cl <- function(contracts) {
+  cme <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2021-12-01', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]]
+  )
+  
+contract <- substr(contracts[1], 4, 6)
+  
+  column_ho <- sym(paste0("HO", contract))
+  column_rb <- sym(paste0("RB", contract))
+  column_cl <- sym(paste0("CL", contract))
+  
+  
+  cme <- cme %>% 
+    mutate(!!column_ho := !!column_ho * 42,
+           !!column_rb := !!column_rb * 42) %>% 
+    mutate(
+      !!sym(paste0("crack_ho_", contract)) := !!column_ho - !!column_cl,
+      !!sym(paste0("crack_rb_", contract)) := !!column_rb - !!column_cl) %>% 
+    mutate(contract = contract) %>% 
+    transmute(date,
+              !!sym(paste0("crack_rb_", contract)),
+              !!sym(paste0(paste0("crack_ho_", contract)))) %>% 
+    pivot_longer(cols = c(!!sym(paste0("crack_rb_", contract)),
+                          !!sym(paste0("crack_ho_", contract))),
+                 values_to = 'value',
+                 names_to = 'series')
+
+return(cme)
+}
+
+nov <- c(
+  "@CL23X",
+  "@RB23X",
+  "@HO23X")
+
+dec <- c(
+  "@CL23Z",
+  "@RB23Z",
+  "@HO23Z")
+
+jan <- c(
+  "@CL24F",
+  "@RB24F",
+  "@HO24F")
+
+feb <- c(
+  "@CL24G",
+  "@RB24G",
+  "@HO24G")
+
+feb <- c(
+  "@CL24G",
+  "@RB24G",
+  "@HO24G")
+
+
+crack <- rbind(crack_rb_ho_cl(nov),
+               crack_rb_ho_cl(dec),
+               crack_rb_ho_cl(jan),
+               crack_rb_ho_cl(feb)) 
+
+```
+
+```{r}
+  contract_month_year <- c(
+  "crack_rb_23Z" = "Dec 2023",
+  "crack_rb_24G" = "Feb 2024", 
+  "diffs" = "Spread")
+
+
+trade_1a <- crack %>% 
+  filter(series != "crack_rb_23X" ,series != "crack_ho_23X" ,series != "crack_ho_23Z" ,series != "crack_rb_24F", series != "crack_ho_24F" , series != "crack_ho_24G") %>% 
+  pivot_wider(names_from = "series", values_from = "value") %>% 
+  mutate(diffs = crack_rb_23Z - crack_rb_24G) %>% 
+  pivot_longer(-date, names_to = "series", values_to = "value")  %>%
+  mutate(series = str_replace_all(series, contract_month_year)) %>% 
+  plotly::plot_ly(x = ~date,
+                  y = ~value,
+                  color = ~series,
+                  type = "scatter",
+                  mode = "lines") %>% 
+    layout(title = list(text = 'RBOB Crack TS', x = 0),
+           xaxis = list(title = ''),
+           yaxis = list(title = 'Value'))
+```
+
+```{r, echo=FALSE}
+library(patchwork)
+
+contracts <- c(
+  "@RB23Z",
+  "@RB24G",
+  "@CL23Z",
+  "@CL24G")
+
+forward <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2018-10-24', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]])
+
+strat <- forward %>%
+  mutate(RB23Z = RB23Z*42,
+         RB24G = RB24G*42) %>% 
+  mutate(crack_dec = RB23Z - CL23Z,
+         crack_feb = RB24G - CL24G) %>% 
+  mutate(value = crack_dec - crack_feb,
+         PL = value - lag(value)) %>% 
+  drop_na()
+
+value_plot <- strat %>% 
+  ggplot(aes(x = date, y = value)) + geom_line(col = 'darkred') + theme_minimal() +labs(title = "RBOB Crack Spread", subtitle = "Long 2023 December, Short Febuary 2024", y = "Value", x = "")
+
+pl_plot <- strat %>% 
+  ggplot(aes(x = date, y = PL)) + geom_line(col = 'gray40') + theme_minimal() +labs(y = "Daily PL", x = "")
+
+```
+
+```{r}
+library(patchwork)
+fig.title1 = "RBOB WTI Crack Spread"
+c = c("CL_001_Month","RB_001_Month")
+from = "2021-01-01"
+
+df_fut <- getPrices(feed = "CME_NymexFutures_EOD_continuous",
+                    contracts = c,
+                    from = from, iuser = mstar[[1]], ipassword = mstar[[2]]) %>%
+  dplyr::transmute(date = date,
+                   CL = CL_001_Month,
+                   RBOB = RB_001_Month * 42,
+                   RBOBcx = RBOB - CL_001_Month,) %>% 
+  tidyr::pivot_longer(-date,names_to = "series", values_to = "value") %>% 
+  group_by() %>% 
+  dplyr::filter(series %in% c("CL","RBOB","RBOBcx"))
+  
+p_cx <- df_fut %>% 
+  ggplot(aes(x = date, y = value, color = series)) + 
+  geom_line() +
+  geom_point(aes(x = as.Date("2023-10-25"), y = 10.5464), color = "black", size = 1) +  # Add this line for the new point
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = fig.title1, y = "Futures Price", x = "", caption = expression(italic("Source: Data via Morning Star")))
+```
+
+```{r}
+library(dplyr)
+library(plotly)
+
+
+crack_rb_ho_cl <- function(contracts) {
+  cme <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2023-01-01', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]]
+  )
+  
+contract <- substr(contracts[1], 4, 6)
+  
+  column_ho <- sym(paste0("HO", contract))
+  column_rb <- sym(paste0("RB", contract))
+  column_cl <- sym(paste0("CL", contract))
+  
+  
+  cme <- cme %>% 
+    mutate(!!column_ho := !!column_ho * 42,
+           !!column_rb := !!column_rb * 42) %>% 
+    mutate(
+      !!sym(paste0("crack_ho_", contract)) := !!column_ho - !!column_cl,
+      !!sym(paste0("crack_rb_", contract)) := !!column_rb - !!column_cl) %>% 
+    mutate(contract = contract) %>% 
+    transmute(date,
+              !!sym(paste0("crack_rb_", contract)),
+              !!sym(paste0(paste0("crack_ho_", contract)))) %>% 
+    pivot_longer(cols = c(!!sym(paste0("crack_rb_", contract)),
+                          !!sym(paste0("crack_ho_", contract))),
+                 values_to = 'value',
+                 names_to = 'series')
+
+return(cme)
+}
+
+nov <- c(
+  "@CL23X",
+  "@RB23X",
+  "@HO23X")
+
+dec <- c(
+  "@CL23Z",
+  "@RB23Z",
+  "@HO23Z")
+
+jan <- c(
+  "@CL24F",
+  "@RB24F",
+  "@HO24F")
+
+feb <- c(
+  "@CL24G",
+  "@RB24G",
+  "@HO24G")
+
+feb <- c(
+  "@CL24G",
+  "@RB24G",
+  "@HO24G")
+
+
+crack <- rbind(crack_rb_ho_cl(nov),
+               crack_rb_ho_cl(dec),
+               crack_rb_ho_cl(jan),
+               crack_rb_ho_cl(feb)) 
+```
+
+## Trades
+
+### Trade 1
+
+#### Market View
+
+-   Gasoline demand has came out lower than expected in the past few weeks. Crude storages are higher than anticipated.
+-   RBOB has taken a bigger hit than Crude, dropping the Crack Spread to yearly lows. Dec/March cx time spread is trading at decade lows.
+-   We believe the market is over reacting to the short term bad news. Supply/demand balances will become more favorable for refineries in the short term, reducing the spread between the RBOB crack in December relative to February.
+-   Storage Levels, see Exhibits 3
+
+#### Risk Appetite & Desired Exposure
+
+-   We are trading spreads, not the flat price
+-   We are confident in our market call and see little downside risk.
+
+#### Execution & Monetization Strategies
+
+-   We are betting on the profitability of gasoline refining to increase in the short term.
+-   Long Dec 2023 RBOB Crack Spread
+-   Short Feb 2024 RBOB Crack Spread
+-   Indicators to look out for:
+    -   Bull: Increase in demand relative to supply
+    -   Bear: Increase in gasoline stocks in the short term.
+
+#### Decisions
+
+-   Sold on Nov 7 when the time spread approached 0 (our profit-taking level), which was the mean of the spread.
+-   In the following 2 weeks, our closed position kept on rising portraying the market's reversal on Dec RBOB crack spread sentiment. We did not see any upside in continuing the position after it had reversed to its mean.
+
+```{r, echo=FALSE}
+library(patchwork)
+
+
+nov <- c(
+  "@CL23X",
+  "@RB23X",
+  "@HO23X")
+
+dec <- c(
+  "@CL23Z",
+  "@RB23Z",
+  "@HO23Z")
+
+jan <- c(
+  "@CL24F",
+  "@RB24F",
+  "@HO24F")
+
+feb <- c(
+  "@CL24G",
+  "@RB24G",
+  "@HO24G")
+
+feb <- c(
+  "@CL24G",
+  "@RB24G",
+  "@HO24G")
+
+
+crack <- rbind(crack_rb_ho_cl(nov),
+               crack_rb_ho_cl(dec),
+               crack_rb_ho_cl(jan),
+               crack_rb_ho_cl(feb)) 
+
+# crack %>%
+
+
+entry_date <- as.Date("2023-10-25")
+exit_date <- as.Date("2023-11-07")
+
+
+contract_month_year <- c(
+"crack_rb_23Z" = "Dec 2023",
+"crack_rb_24G" = "Feb 2024", 
+"diffs" = "Spread")
+
+
+trade_1a <- crack %>% 
+  filter(series != "crack_rb_23X" ,series != "crack_ho_23X" ,series != "crack_ho_23Z" ,series != "crack_rb_24F", series != "crack_ho_24F" , series != "crack_ho_24G") %>% 
+  pivot_wider(names_from = "series", values_from = "value") %>% 
+  mutate(diffs = crack_rb_23Z - crack_rb_24G) 
+
+plot_trade_1 <- trade_1a %>%
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~diffs, name = "1-1 Diff", type = "scatter", mode = "lines") %>%
+  add_trace(y = ~crack_rb_23Z, name = "Dec cx", type = "scatter", mode = "lines") %>%
+  add_trace(y = ~crack_rb_24G, name = "Feb cx", type = "scatter", mode = "lines") %>%
+  add_trace(x = ~entry_date,y = ~trade_1a$diffs[trade_1a$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_1a$diffs[trade_1a$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) %>% 
+  layout(title = list(text = 'RBOB cx'),
+         xaxis = list(title = ''),
+         yaxis = list(title = 'Value'))
+
+contracts <- c(
+  "@RB23Z",
+  "@RB24G",
+  "@CL23Z",
+  "@CL24G")
+
+forward <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2022-10-24', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]])
+
+trade_1 <- forward %>%
+  mutate(RB23Z = RB23Z*42,
+         RB24G = RB24G*42) %>% 
+  mutate(crack_dec = RB23Z - CL23Z,
+         crack_feb = RB24G - CL24G) %>% 
+  mutate(value = crack_dec - crack_feb,
+         PL = value - lag(value)) %>% 
+  drop_na() %>% 
+  filter(date >= entry_date) %>% 
+  #filter(date <= "2023-11-07") %>% 
+  mutate(cumu = c(cumsum(PL)-PL[1])*200000)
+
+
+# Create the plot
+pl_plot_1 <- trade_1 %>% 
+  plot_ly(x = ~date,
+          y = ~cumu,
+          type = "scatter",
+          mode = "lines", 
+          name = "Cumulative Position",
+          showlegend = F) %>% 
+  add_trace(
+    x = ~entry_date,
+    y = ~trade_1$cumu[trade_1$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(
+    x = ~exit_date,
+    y = ~trade_1$cumu[trade_1$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) %>% 
+  layout(
+    title = list(text = 'Trade 1: Long Dec cx, Short Feb cx'),
+    xaxis = list(title = ''),
+    yaxis = list(title = 'Profit')
+  )
+```
+
+```{r}
+fig <- plotly::plot_ly(
+  type = 'table',
+  header = list(
+    values = c('<b>Exposure<b>', '<b>Dec 23 cx</b>','<b>Feb 24 cx</b>','<b>NET</b>'),
+    line = list(color = 'black'),
+    fill = list(color = 'grey'),
+    align = c('left','center'),
+    font = list(color = 'white', size = 12)),
+  cells = list(
+    values = rbind(
+      c('<b>RB Exposure (bbl)</b>', '<b>CL Exposure (bbl)</b>', '<b>Buy Price ($/bbl)</b>', '<b>Sell Price ($/bbl)</b>'),
+      c("200000", "-200000", 9.8996, 13.6734),
+      c("-200000", "200000", -11.5262, -13.6980),
+      c(0, 0, round(trade_1a$diffs[trade_1a$date == entry_date],3), round(trade_1a$diffs[trade_1a$date == exit_date], 3))),
+    
+    line = list(color = 'black'),
+    fill = list(color = c('white', 'white', 'white', '#f59')),
+    align = c('right', 'center'),
+    font = list(color = c('black'), size = 12)
+    )) %>%
+    plotly::layout(
+        margin = 0
+      )
+fig
+plotly::subplot(plot_trade_1, pl_plot_1, nrows=2, margin = 0.1, titleY = TRUE)
+
+```
+
+### Trade 2
+
+#### Market View
+
+-   Bullish on the RBOB Crack Spread in the short term
+-   Implied storage expected to remain relatively constant, with slight draws
+-   The expectation of contributed stabilization of storage level combined with relatively low crude prices suggests that the relatively small crack spread, when compared to previous years, will move in a mean-reverting direction in the near term
+
+##### Risk Appetite & Desired Exposure
+
+-   Moderate risk without taking RBOB flat price exposure
+-   We wanted to limit price swings approximately +/- 150k per day; thus, we selected 100k BBL as our position size, per recent daily P&L swings.
+
+##### Execution & Monetization Strategies
+
+-   Long January 2024 RBOB contracts and short January 2024 WTI contracts, giving us a long position on the January RBOB Crack Spread
+
+```{r}
+contracts = c("@RB23X", "@RB23Z", "@RB24F", "@RB24G", "@RB24H", "@RB24J", "@RB24K", "@RB24M", "@CL24F")
+rbob_data <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2023-09-01', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]]
+  )
+plot_rbob <- rbob_data %>% 
+  pivot_longer(-date,values_to = 'value',
+                 names_to = 'series') %>% 
+  plotly::plot_ly(x = ~date,
+                  y = ~value,
+                  color = ~series,
+                  type = "scatter",
+                  mode = "lines")
+```
+
+```{r}
+entry_date <- as.Date("2023-11-13")
+exit_date <- as.Date("2023-11-21")
+# Long Jan RBOB CX
+trade_2 <- rbob_data %>% 
+  transmute(date, RB24F = 42*RB24F, CL24F, CX = RB24F - CL24F)
+plot_trade_2a <- trade_2 %>% 
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~CL24F, name = "Jan 24 WTI (short)", type = "scatter", mode = "lines") %>%
+  add_trace(y = ~RB24F, name = "Jan 24 RBOB (long)", type = "scatter", mode = "lines") %>%
+  
+  layout(title = list(text = 'Jan RBOB cx'),
+       xaxis = list(title = ''),
+       yaxis = list(title = 'Value'))
+plot_trade_2b <- trade_2 %>% 
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~CX, name = "Jan 24 CX", type = "scatter", mode = "lines") %>%
+  layout(title = list(text = 'Jan RBOB cx'),
+       xaxis = list(title = ''),
+       yaxis = list(title = 'Value')) %>% 
+  add_trace(x = ~entry_date,y = ~trade_2$CX[trade_2$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_2$CX[trade_2$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) 
+trade_2c<- trade_2 %>% 
+  mutate(PL = CX - lag(CX)) %>% 
+    drop_na() %>% 
+    filter(date >= entry_date) %>% 
+    mutate(cumu = c(cumsum(PL)-PL[1])*100000)
+  
+plot_trade_2c <- trade_2c %>% 
+  plot_ly(x = ~date,
+          y = ~cumu,
+          type = "scatter",
+          mode = "lines", 
+          name = "Cumulative Position",
+          showlegend = F) %>% 
+  add_trace(x = ~entry_date,y = ~trade_2c$cumu[trade_2c$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_2c$cumu[trade_2c$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) 
+
+fig2 <- plotly::plot_ly(
+  type = 'table',
+  header = list(
+    values = c('<b>Exposure<b>', '<b>Jan 24 cx</b>','<b>NET</b>'),
+    line = list(color = 'black'),
+    fill = list(color = 'grey'),
+    align = c('left','center'),
+    font = list(color = 'white', size = 12)),
+  cells = list(
+    values = rbind(
+      c('<b>RB Exposure (bbl)</b>', '<b>CL Exposure (bbl)</b>', '<b>Buy Price ($/bbl)</b>', '<b>Sell Price ($/bbl)</b>'),
+      c("100,000", "-100,000", 13.8346, '14.966'),
+      c("100,000", "-100,000", 13.8346, 14.966)),
+    
+    line = list(color = 'black'),
+    fill = list(color = c('white', 'white',  '#f59')),
+    align = c('right', 'center'),
+    font = list(color = c('black'), size = 12)
+    ))  %>%
+  plotly::layout( 
+    margin = 0)
+fig2
+display_2 <- plotly::subplot(plot_trade_2a, plot_trade_2b, plot_trade_2c, nrows=3, margin = 0.06, titleX = TRUE)
+display_2
+```
+
+### Trade 3
+
+#### Market View
+
+-   Our supply & demand model in the short term is forcasting small storage draws. RBOB prices have recently taken a bit of a hit, which can be attributable to the time of the year and speculative fears surrounding world events. This is pictured in our supply & demand curve showing a stint of implied storage fills before entering our position. We believe the price was driven below our perceived market value by speculative fears in the short term. We are Bullish in the near term.
+
+#### Risk Appetite & Desired Exposure
+
+-   Moderate to low risk, with some hedged exposure. See exhibit 6 and note that daily PL generally hovers between 0.5 and -0.5. We chose this spread to limit our daily PL to 150,000.
+
+#### Execution & Monetization Strategies
+
+-   Long the Front contract (Dec), short the 4th contract (Mar) time spread. This was put in place to expose us to any price increases from implied storage draws while using the term structure to hedge some of the volatility.
+
+```{r}
+entry_date <- as.Date("2023-11-13")
+exit_date <- as.Date("2023-11-17")
+# Long Dec RBOB Short March RBOB
+trade_3 <- rbob_data %>% 
+  transmute(date, RB23Z, RB24H, RBT = RB23Z - RB24H)
+plot_trade_3a <- trade_3 %>% 
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~RB23Z, name = "Dec 23 RBOB (long)", type = "scatter", mode = "lines") %>%
+  add_trace(y = ~RB24H, name = "March 24 RBOB (short)", type = "scatter", mode = "lines") %>%
+  layout(title = list(text = 'RBOB Dec/March Spread'),
+       xaxis = list(title = ''),
+       yaxis = list(title = 'Value'))
+plot_trade_3b <- trade_3 %>% 
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~RBT, name = "RBOB Dec/March Spread", type = "scatter", mode = "lines") %>%
+  layout(title = list(text = 'RBOB Dec/March Spread'),
+       xaxis = list(title = ''),
+       yaxis = list(title = 'Value')) %>% 
+  add_trace(x = ~entry_date,y = ~trade_3$RBT[trade_3$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_3$RBT[trade_3$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) 
+trade_3c<- trade_3 %>% 
+  mutate(PL = RBT - lag(RBT)) %>% 
+    drop_na() %>% 
+    filter(date >= entry_date) %>% 
+    mutate(cumu = c(cumsum(PL)-PL[1])*6300000)
+plot_trade_3c <- trade_3c %>% 
+  plot_ly(x = ~date,
+          y = ~cumu,
+          type = "scatter",
+          mode = "lines", 
+          name = "Cumulative Position",
+          showlegend = F) %>% 
+  add_trace(x = ~entry_date,y = ~trade_3c$cumu[trade_3c$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_3c$cumu[trade_3c$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) 
+
+fig3 <- plotly::plot_ly(
+  type = 'table',
+  header = list(
+    values = c('<b>Exposure<b>', '<b>"Dec 23 RBOB (long)"</b>','<b>"March 24 RBOB (short)"</b>','<b>NET</b>'),
+    line = list(color = 'black'),
+    fill = list(color = 'grey'),
+    align = c('left','center'),
+    font = list(color = 'white', size = 12)),
+  cells = list(
+    values = rbind(
+      c('<b>RB Exposure (gal)</b>', '<b>Buy Price ($/gal)</b>', '<b>Sell Price ($/gal)</b>', '<b>P/L ($/gal)</b>'),
+      c("6,300,000",2.1895, 2.2338),
+      c("-6,300,000", -2.1849, -2.2276),
+      c(0, 0.0046	, '0.0062')),
+    
+    line = list(color = 'black'),
+    fill = list(color = c('white', 'white', 'white', '#f59')),
+    align = c('right', 'center'),
+    font = list(color = c('black'), size = 12)
+    )) %>%
+    plotly::layout(
+        margin = 0
+      )
+fig3
+display_3 <-plotly::subplot(plot_trade_3a, plot_trade_3b, plot_trade_3c, nrows=3, margin = 0.06, titleX = TRUE)
+display_3
+```
+
+```{r, include=FALSE}
+library(RTL)
+library(tidyverse)
+library(dplyr)
+
+dflong <- dflong
+
+df.prices <- dflong %>% filter(grepl("RB01|RB04", series)) %>% drop_na()
+
+df.ret <- df.prices %>% mutate(value = dplyr::case_when(grepl("RB01", series) ~ value * 42,
+                                         TRUE ~ value * 42)) %>% 
+  group_by(series) %>% mutate(ret = value - lag(value)) %>% na.omit()
+
+
+df.ret.wide <- df.ret %>%
+  tidyr::pivot_wider(id_cols = -value, values_from = ret, names_from = series) %>% 
+  dplyr::filter(!date %in% c(as.Date("2020-04-20"),as.Date("2020-04-21"))) %>% 
+  tidyr::drop_na()
+
+fig.title = paste(colnames(df.ret.wide)[2],"vs",colnames(df.ret.wide)[3],"Relationship")
+
+axis.lim <- df.ret.wide %>% select(-date) %>% max(abs(.))
+df.ret.wide %>%
+  ggplot(aes(x = RB01, y = RB04, col = date)) + geom_point() +
+  ylim(-axis.lim, axis.lim) + xlim(-axis.lim, axis.lim) +
+  labs(title = fig.title) + 
+  stat_smooth(method = loess, col = "black",se = FALSE)
+
+
+# Regression 
+
+fit <- stats::lm(RB01 ~ RB04, data = df.ret.wide)
+
+summary(fit)
+
+library(broom)
+broom::tidy(fit) %>% dplyr::mutate_if(is.numeric, round, 3)
+
+
+broom::augment(fit) %>%
+  ggplot(aes(x = RB01, y = RB04)) + geom_point() +
+  stat_smooth(method = lm, formula = y ~ x,se = FALSE) +
+  stat_smooth(method = loess, formula = y ~ x,se = FALSE, col = "orange") +
+  ylim(-axis.lim, axis.lim) + xlim(-axis.lim, axis.lim)
+```
+
+```{r, include=F}
+# Assessing goodness of fit
+
+summary(fit)$coefficients
+```
+
+```{r, include=FALSE}
+library(ggfortify)
+
+autoplot(fit,size = 0.5)
+```
+
+#### Trade 3b
+
+Upon learning about how to implement hedge ratios, we wanted to correctly hedge our time spread position to maximize profit. Below shows the contract betas as they progress further into the future:
+
+```{r, echo=F}
+x <- dflong %>% 
+  dplyr::filter(grepl("RB",series)) %>% 
+  dplyr::mutate(series = readr::parse_number(series)) %>% 
+  mutate(value = value * 42) %>% 
+  dplyr::group_by(series) %>% 
+  RTL::returns(df = ., retType = "abs",period.return = 1,spread = TRUE) %>% 
+  RTL::rolladjust(x = .,
+                  commodityname = c("cmewti"),
+                  rolltype = c("Last.Trade"))
+RTL::promptBeta(
+  x = x,
+  period = "all",
+  betatype = "all",
+  output = "chart"
+)
+```
+
+#### Dec/March Hedge ratio
+
+-   New hedge ratio for Dec/March RBOB Spread: 0.5938231
+-   We then closed our position and reopened with the correct ratio in accordance with the calculations above.
+-   New Exposure
+
+```{r}
+fig4 <- plotly::plot_ly(
+  type = 'table',
+  header = list(
+    values = c('<b>Exposure<b>', '<b>"Dec 23 RBOB (long)"</b>','<b>"March 24 RBOB (short)"</b>','<b>NET</b>'),
+    line = list(color = 'black'),
+    fill = list(color = 'grey'),
+    align = c('left','center'),
+    font = list(color = 'white', size = 12)),
+  cells = list(
+    values = rbind(
+      c('<b>RB Exposure (gal)</b>'),
+      c("6,300,000"),
+      c("-3,696,000"),
+      c("2,604,000")),
+    
+    line = list(color = 'black'),
+    fill = list(color = c('white', 'white', 'white', '#f59')),
+    align = c('right', 'center'),
+    font = list(color = c('black'), size = 12)
+    )) %>%
+    plotly::layout(
+        margin = 0
+      )
+fig4
+```
+
+```{r}
+entry_date <- as.Date("2023-11-20")
+exit_date <- as.Date("2023-11-21")
+# Long Dec RBOB Short March RBOB
+trade_4 <- rbob_data %>% 
+  transmute(date, RB23Z, RB24H, RBT = RB23Z - (0.5938231*RB24H))
+plot_trade_4a <- trade_4 %>% 
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~RB23Z, name = "Dec 23 RBOB (long)", type = "scatter", mode = "lines") %>%
+  add_trace(y = ~RB24H, name = "March 24 RBOB (short)", type = "scatter", mode = "lines") %>%
+  layout(title = list(text = 'RBOB Dec/March Spread'),
+       xaxis = list(title = ''),
+       yaxis = list(title = 'Value'))
+plot_trade_4b <- trade_4 %>% 
+  plot_ly(x = ~date) %>%
+  add_trace(y = ~RBT, name = "RBOB Dec/March Spread - Hedged", type = "scatter", mode = "lines") %>%
+  layout(title = list(text = 'RBOB Dec/March Spread - Hedged'),
+       xaxis = list(title = ''),
+       yaxis = list(title = 'Value')) %>% 
+  add_trace(x = ~entry_date,y = ~trade_4$RBT[trade_4$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_4$RBT[trade_4$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) 
+trade_4c<- trade_4 %>% 
+  mutate(PL = RBT - lag(RBT)) %>% 
+    drop_na() %>% 
+    filter(date >= entry_date) %>% 
+    mutate(cumu = c(cumsum(PL)-PL[1])*6300000)
+plot_trade_4c <- trade_4c %>% 
+  plot_ly(x = ~date,
+          y = ~cumu,
+          type = "scatter",
+          mode = "lines", 
+          name = "Cumulative Position",
+          showlegend = F) %>% 
+  add_trace(x = ~entry_date,y = ~trade_4c$cumu[trade_4c$date == entry_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "green", size = 10),  # Customize marker appearance
+    name = "Entry"
+  ) %>% 
+  add_trace(x = ~exit_date,y = ~trade_4c$cumu[trade_4c$date == exit_date],
+    type = "scatter",
+    mode = "markers",
+    marker = list(color = "red", size = 10),  # Customize marker appearance
+    name = "Exit"
+  ) 
+
+display_4 <-plotly::subplot(plot_trade_4a, plot_trade_4b, plot_trade_4c, nrows=3, margin = 0.06, titleX = TRUE)
+display_4
+```
+
+#### Total P/L
+
+```{r}
+join1<-trade_1 %>% 
+  select(date, cumu) %>% 
+  filter(date<= "2023-11-07")
+  
+
+join2<-trade_2c %>% 
+  select(date, cumu)
+  
+join3<-trade_3c %>% 
+  select(date, cumu) %>% 
+  filter(date<= "2023-11-20")
+
+join4<- trade_4c %>% 
+  select(date, cumu)
+
+
+join3b <- full_join(join3, join4, by = "date") %>% 
+  fill(cumu.x, .direction = "down") %>% 
+  fill(cumu.y, .direction = "up") %>% 
+  mutate(cumu = cumu.x+cumu.y) %>% 
+  select(date, cumu)
+  
+join23 <- full_join(join2, join3b, by = "date") %>% 
+  mutate(cumu = cumu.x+cumu.y) %>% 
+  select(date, cumu)
+
+joinf <- full_join(join1, join23, by = "date") %>% 
+  fill(cumu.x, .direction = "down") %>% 
+  fill(cumu.y, .direction = "up") %>% 
+  mutate(cumu = cumu.x+cumu.y) %>% 
+  select(date, cumu)
+
+plot_t <- joinf %>% 
+  plot_ly(x = ~date,
+          y = ~cumu,
+          type = "scatter",
+          mode = "lines", 
+          name = "Cumulative Position",
+          showlegend = F) %>% 
+  plotly::layout(xaxis = list(title = ''),
+         yaxis = list(title = 'P/L'))
+plot_t
+```
+
+## Conclusion
+
+### Lessons Learned
+
+What have you learned from this project?
+
+-   The complexity of gasoline was a big learning curve for us. The different blends and blending components sent us down a rabbit hole of research. After tirelessly attempting to construct a supply & demand balance for RBOB by combining the different components and their relative import/export data, we cut our losses and opted to go with total finished gasoline to perform our market analysis.
+-   In recognizing the limitations of our model and its ability to mirror the economics of RBOB itself, we were uneasy with taking on a lot of risk solely based on our SD model.
+-   Limited Public news. We learned that commodities like RBOB have very few public and timely news sources, pushing us to really dig for news and reflect to draw our own conclusions, rather than having a clear market status delivered to us.
+-   Trading on a weekly time horizon highlights the importance of timing your entries and exits correctly. There are no days off in the trading world.
+
+## Exhibits
+
+### Exhibit 1
+
+#### Supply Indicators
+
+-   Supply + Imports + Bio fuels + Adjustments
+
+#### Demand Indicators
+
+-   Disposition + Exports
+
+### Exhibit 2
+
+HO cx vs RBOB cx
+
+```{r}
+
+crack %>%
+  plotly::plot_ly(x = ~date,
+                  y = ~value,
+                  color = ~series,
+                  type = "scatter",
+                  mode = "lines")
+```
+
+### Exhibit 3
+
+#### Trade 1 Storage Visualization
+
+```{r, echo=FALSE}
+
+library(dplyr)
+library(tidyverse)
+library(RTL)
+
+mstar <- c('trading@ualberta.ca', '#5GvhnRCvk')
+
+crack_rb_cl <- function(contracts) {
+  cme <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2018-12-01', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]]
+  )
+  
+contract <- substr(contracts[1], 4, 6)
+  
+  column_rb <- sym(paste0("RB", contract))
+  column_cl <- sym(paste0("CL", contract))
+  
+  
+  cme <- cme %>% 
+    mutate(!!column_rb := !!column_rb * 42) %>% 
+    mutate(!!sym(paste0("crack_rb_", contract)) := !!column_rb - !!column_cl) %>% 
+    mutate(contract = contract) %>% 
+    transmute(date,
+              !!sym(paste0("crack_rb_", contract))) %>% 
+    pivot_longer(cols = c(!!sym(paste0("crack_rb_", contract))),
+                 values_to = 'value',
+                 names_to = 'series')
+
+return(cme)
+}
+
+
+
+dec20 <- c(
+  "@CL0Z",
+  "@RB0Z")
+
+feb21 <- c(
+  "@CL21G",
+  "@RB21G")
+
+dec21 <- c(
+  "@CL21Z",
+  "@RB21Z")
+
+feb22 <- c(
+  "@CL22G",
+  "@RB22G")
+
+dec22 <- c(
+  "@CL22Z",
+  "@RB22Z")
+
+feb23 <- c(
+  "@CL23G",
+  "@RB23G")
+
+dec23 <- c(
+  "@CL23Z",
+  "@RB23Z")
+
+feb24 <- c(
+  "@CL24G",
+  "@RB24G")
+
+
+crack <- rbind(crack_rb_cl(dec20),
+               crack_rb_cl(feb21),
+               crack_rb_cl(dec21),
+               crack_rb_cl(feb22),
+               crack_rb_cl(dec22),
+               crack_rb_cl(feb23),
+               crack_rb_cl(dec23),
+               crack_rb_cl(feb24)) 
+
+contract_month_year <- c(
+  "crack_rb_23X" = "Nov 2023",
+  "crack_rb_23Z" = "Dec 2023",
+  "crack_rb_24F" = "Jan 2024",
+  "crack_rb_24G" = "Feb 2024")
+
+crack <- crack %>% 
+  pivot_wider(names_from = series,
+              values_from = value)
+
+ts_2020 <- crack %>% 
+  filter(date == "2020-10-23") %>% 
+  mutate(ts_2020 = crack_rb_0Z - crack_rb_21G) %>% 
+  transmute(date, ts_2020) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "value")
+
+ts_2021 <-crack %>% 
+  filter(date == "2021-10-22") %>% 
+  mutate(ts_2021 = crack_rb_21Z - crack_rb_22G) %>% 
+  transmute(date, ts_2021) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "value")
+
+ts_2022 <-crack %>% 
+  filter(date == "2022-10-21") %>% 
+  mutate(ts_2022 = crack_rb_22Z - crack_rb_23G) %>% 
+  transmute(date, ts_2022) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "value")
+
+ts_2023 <-crack %>% 
+  filter(date == "2023-10-20") %>% 
+  mutate(ts_2023 = crack_rb_23Z - crack_rb_24G) %>% 
+  transmute(date, ts_2023) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "value")
+
+ts_20_23 <- rbind(ts_2020,
+      ts_2021,
+      ts_2022,
+      ts_2023) 
+
+EIAkey = "oa57E1u0w4dCRbHt24IKZdpCOfdYF66DM1lW3TWk"
+
+rb_store <- eia <- tibble::tribble(
+  ~ ticker,
+  ~ name, "PET.W_EPOBGRR_SAE_R10_MBBL.W", "storage_rbob_padd1") %>%
+  RTL::eia2tidy_all(tickers = ., key = EIAkey)
+
+
+
+rb_store <- rb_store %>% 
+  select(-series) %>% 
+  rename(storage_rbob_padd1 = value)
+
+ts_store <- right_join(ts_20_23, rb_store, by = 'date') %>% 
+  drop_na()
+
+
+oct_21 <- ts_store %>% ggplot(aes(x = date, y = value, color = storage_rbob_padd1)) +
+  geom_point(size = 3) +
+  scale_color_gradient(low = "blue", high = "red") +
+  lims(y = c(-2,2))+
+  labs(x = "Date", y = "Values", title = "Dec-Feb Crack Spread Time Spread", subtitle = 'Week of October 21', color = "Storage") + theme_minimal()
+
+
+ts_2020 <- crack %>% 
+  filter(date == "2020-10-30") %>% 
+  mutate(ts_2020 = crack_rb_0Z - crack_rb_21G) %>% 
+  transmute(date, ts_2020) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "values")
+
+ts_2021 <-crack %>% 
+  filter(date == "2021-10-29") %>% 
+  mutate(ts_2021 = crack_rb_21Z - crack_rb_22G) %>% 
+  transmute(date, ts_2021) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "values")
+
+ts_2022 <-crack %>% 
+  filter(date == "2022-10-28") %>% 
+  mutate(ts_2022 = crack_rb_22Z - crack_rb_23G) %>% 
+  transmute(date, ts_2022) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "values")
+
+ts_2023 <-crack %>% 
+  filter(date == "2023-10-27") %>% 
+  mutate(ts_2023 = crack_rb_23Z - crack_rb_24G) %>% 
+  transmute(date, ts_2023) %>% 
+  pivot_longer(-date,
+               names_to = 'series',
+               values_to = "values")
+
+ts_20_23 <- rbind(ts_2020,
+      ts_2021,
+      ts_2022,
+      ts_2023) 
+
+rb_store <- eia <- tibble::tribble(
+  ~ ticker,
+  ~ name, "PET.W_EPOBGRR_SAE_R10_MBBL.W", "storage_rbob_padd1") %>%
+  RTL::eia2tidy_all(tickers = ., key = EIAkey)
+
+
+
+rb_store <- rb_store %>% 
+  select(-series) %>% 
+  rename(storage_rbob_padd1 = value)
+
+ts_store <- right_join(ts_20_23, rb_store, by = 'date') %>% 
+  drop_na()
+
+
+oct_28 <- ts_store %>% 
+  ggplot(aes(x = date, y = values, color = storage_rbob_padd1)) +
+  geom_point(size = 3) +
+  scale_color_gradient(low = "darkgreen", high = "darkorange") +
+  lims(y = c(-2,2))+
+  labs(x = "Date", y = "Values", title = "Dec-Feb Crack Spread Time Spread", subtitle = 'Week of October 28', color = "Storage") + theme_minimal()
+
+library(patchwork)
+oct_21/oct_28
+
+```
+
+### Exhibit 4
+
+```{r}
+library(patchwork)
+
+contracts <- c(
+  "@RB23Z",
+  "@RB24G",
+  "@CL23Z",
+  "@CL24G")
+
+forward <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2018-10-24', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]])
+
+strat <- forward %>%
+  mutate(RB23Z = RB23Z*42,
+         RB24G = RB24G*42) %>% 
+  mutate(crack_dec = RB23Z - CL23Z,
+         crack_feb = RB24G - CL24G) %>% 
+  mutate(value = crack_dec - crack_feb,
+         PL = value - lag(value)) %>% 
+  drop_na()
+
+value_plot <- strat %>% 
+  ggplot(aes(x = date, y = value)) + geom_line(col = 'darkred') + theme_minimal() +labs(title = "RBOB Crack Spread Time Spread", subtitle = "Long 2023 December, Short Febuary 2024", y = "Value", x = "")
+
+pl_plot <- strat %>% 
+  ggplot(aes(x = date, y = PL)) + geom_line(col = 'gray40') + theme_minimal() +labs(y = "Daily PL", x = "")
+
+value_plot/pl_plot
+```
+
+### Exhibit 5
+
+```{r}
+library(patchwork)
+
+contracts <- c(
+  "@RB24F",
+  "@CL24F")
+
+forward <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2018-10-24', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]])
+
+strat <- forward %>%
+  mutate(RB24F = RB24F*42) %>% 
+  mutate(crack_jan = RB24F - CL24F) %>% 
+  mutate(value = crack_jan,
+         PL = value - lag(value)) %>% 
+  drop_na()
+
+value_plot <- strat %>% 
+  ggplot(aes(x = date, y = value)) + geom_line(col = 'royalblue') + theme_minimal() +labs(title = "RBOB Crack Spread", subtitle = "Long January 2024", y = "Value", x = "")
+
+pl_plot <- strat %>% 
+  ggplot(aes(x = date, y = PL)) + geom_line(col = 'gray40') + theme_minimal() +labs(y = "Daily PL", x = "")
+
+value_plot/pl_plot
+```
+
+### Exhibit 6
+
+```{r}
+library(patchwork)
+
+
+contracts <- c(
+  "@RB23Z",
+  "@RB24H")
+
+forward <- RTL::getPrices(
+    feed = "CME_NymexFutures_EOD",
+    contracts = contracts,
+    from = '2018-10-24', 
+    iuser = mstar[[1]],
+    ipassword = mstar[[2]])
+
+
+strat <- forward %>% 
+  transmute(date, RB23Z, RB24H) %>% 
+  mutate(RB23Z = RB23Z*42,
+         RB24H = RB24H*42) %>% 
+  mutate(value = RB23Z - RB24H,
+         PL = value - lag(value)) %>% 
+  drop_na()
+
+value_plot <- strat %>% 
+  ggplot(aes(x = date, y = value)) + geom_line(col = 'orange2') + theme_minimal() +labs(title = "RBOB Time Spread", subtitle = "Long 2023 December, Short March 2024", y = "Value", x = "")
+
+pl_plot <- strat %>% 
+  ggplot(aes(x = date, y = PL)) + geom_line(col = 'gray40') + theme_minimal() +labs(y = "Daily PL", x = "")
+
+value_plot/pl_plot
+```
+
+### Exhibit 7
+
+```{r}
+library(tidyverse)
+mstar <- c('trading@ualberta.ca', '#5GvhnRCvk')
+vol <-  RTL::getPrices(
+  feed = "CME_NymexFutures_EOD_continuous", contracts = paste0("RB_", sprintf('%0.3d', 1:10), "_Month"),
+  from = "2020-06-01",
+  iuser = mstar[[1]],
+  ipassword = mstar[[2]])
+
+
+vol <- vol %>%
+  tidyr::pivot_longer(2:11, names_to = "series", values_to = "value") %>%
+  dplyr::mutate(series = stringr::str_replace_all(series, c("_0" = "", "_Month" = ""))) %>% dplyr::group_by(series) %>%
+  dplyr::mutate(
+    ret_abs = (value - dplyr::lag(value))*42) %>%
+  tidyr::drop_na()
+
+
+
+vol_ret <- vol %>% select(date, series, ret_abs) %>% pivot_wider(values_from = ret_abs, names_from = series)
+
+vol_ret_adj <- RTL::rolladjust(x = vol_ret, commodityname = c("cmerbob"), rolltype = c("Last.Trade")) %>% 
+  pivot_longer(-date, names_to = "series", values_to = "value")
+
+vol_ret_adj %>% group_by(series) %>% 
+  summarise(stdev = sd(value) * sqrt(252),
+                          .groups = "keep") %>% 
+  plotly::plot_ly(x = ~ series,
+                  y = ~ stdev,
+                  type = "scatter")
+```
