@@ -16,6 +16,7 @@ about:
       icon: telephone
     - text: LinkedIn
       icon: linkedin
+      href: https://www.linkedin.com/in/connor-beebe-392444291/
 ---
 
 My academic and professional journey in finance, guided by my experience as a former NCAA hockey player, has shaped me into a dedicated and collaborative individual. Currently completing my BCom in Finance Honors at the University of Alberta, I'm deeply interested in trading, risk management, digital finance, and portfolio management.
