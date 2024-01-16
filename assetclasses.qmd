@@ -1,3 +1,326 @@
 ---
 title: "Asset Classes"
 ---
+
+### **Preface**
+
+Historical price data across multiple asset classes has been used to analyze their returns and formulate conclusions. The chosen data is as follows:
+
+-   US Long Term Bonds: <https://etfdb.com/etf/TLT/#etf-ticker-profile>
+-   Energy Liquids, United States Oil Fund: <https://etfdb.com/etf/USO/#etf-ticker-profile>\
+-   Gold: <https://etfdb.com/etf/GLD/#etf-ticker-profile>
+-   Real Estate: <https://etfdb.com/etf/VNQ/#etf-ticker-profile>
+-   US Equities: <https://etfdb.com/etf/SPY/#etf-ticker-profile>
+
+Follow the attached links for more information.
+
+Note that throughout the visualizations in this document, the data chosen to represent the asset classes will be identified using their ticker:
+
+-   US Long Term Bonds: "TLT".
+-   Energy Liquids: "USO".
+-   Gold: "GLD".
+-   Real Estate: "VNQ".
+-   US Equities: "SPY".
+
+### **Summary**
+
+-   Energy Liquids are the most volatile.
+-   Real Estate is the most susceptible to extreme or infrequent events.
+-   The returns of Real Estate and US Equities have the highest static correlation.
+-   The correlation of returns between Gold and Energy Liquids is non-constant, differing over time.
+-   None of the asset classes appear consistent with a normal distribution, backed by normality testing.
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+# load necessary libraries 
+
+library(tidyverse)
+library(tidyquant)
+library(stats)
+library(ggplot2)
+library(scales)
+library(moments)
+library(gt)
+library(tseries)
+library(broom)
+library(corrplot)
+library(bslib)
+
+```
+
+```{r, include=FALSE, echo=FALSE}
+# retrieve data 
+
+ticker <- c("TLT", "USO", "GLD", "VNQ", "SPY")
+prices <- ticker %>% 
+  tidyquant::tq_get("stock.prices", from = "2014-01-01", to = "2023-01-31") %>% 
+  stats::na.omit(.)
+
+# compute log returns on adjusted close (adjusted for splits and dividends)
+
+returns <- prices %>% 
+  dplyr::group_by(symbol) %>% 
+  dplyr::mutate(value = adjusted, 
+                log_returns = (log(value / lag(value)))) %>% 
+  select(date, symbol, log_returns) %>% 
+  na.omit()
+
+# create wide df, will be helpful for rolling correlation
+
+
+returns_wide <- returns %>% 
+  pivot_wider(names_from = symbol, values_from = log_returns) %>% 
+  na.omit(.)
+
+```
+
+### **Findings**
+
+To frame the analysis that follows, below is a chart that may prove helpful to refer to. It includes prices across asset classes since 2014:
+
+```{r, echo=FALSE}
+
+# plot prices to paint a picture. Even though not required, I feel it will help frame the document
+
+price_chart <- prices %>% 
+  ggplot(aes(x = date, y = adjusted, col = symbol)) + geom_line() + labs(title = 'Prices Over Time', subtitle = "2014-01-01 to 2023-01-31", y = "Price (Adjusted for splits & dividends)", x = "")
+
+price_chart
+```
+
+Histograms are a good representation of the distribution of returns. Returns are categorized by volume within a certain range, then plotted based on the density of the occurrences within those ranges. Below are a series of histograms for all the asset classes being analyzed:
+
+```{r, echo=FALSE}
+
+# plot histograms. Facet for easy comparison. 
+
+histograms <- returns %>% 
+  ggplot(aes(x = log_returns, col = symbol, fill = symbol)) + geom_histogram(aes(y = after_stat(width * density)), bins = 300, show.legend = F) + geom_rug(col = "black") + facet_grid(symbol ~ .) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + 
+  scale_x_continuous(labels = percent_format(accuracy = 1)) + 
+  coord_cartesian(xlim = c(-.30,.20)) +
+  labs(title = "Logarithmic Returns Density Histogram by Asset Class", y = "Density", x = "Returns",
+       subtitle = "2014-01-01 to 2023-01-31")
+
+histograms  
+
+```
+
+The shapes of the distributions seem quite similar, apart from a few key differences. One is that Energy Liquids (USO) is clearly less compact around its average return. This points towards higher volatility. Another detail to notice is the black bars below the distributions. These indicate data points. Note that the Real Estate class (VNQ) has many points that occur outside the 'meat' of the distribution. This indicates a higher probability of extreme returns in relation to its average return (more susceptible to an event such as a market crash).
+
+For a better visual comparison of the distribution shapes, here is them all overlapped:
+
+```{r, echo=FALSE, message=FALSE}
+
+# plot histograms over each other. modify x axis window to amplify shape of distributions. 
+
+combined_hist <- returns %>% 
+ggplot(aes(x = log_returns, fill = symbol)) +
+  geom_histogram(position = "identity", alpha = 0.3, bins = 300, aes(y = after_stat(width * density))) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  scale_x_continuous(limits =  c(-.15,.15), labels = percent_format(accuracy = 1)) +
+  labs(title = "Logarithmic Returns Density Histogram", y = "Density", x = "Returns")
+combined_hist
+```
+
+For further context into the volatility of Energy Liquids, here is a chart of daily volatility levels in comparison to its constant volatility over time:
+
+```{r, echo=FALSE}
+sd.USO <- returns_wide %>% 
+  mutate(mean = mean(USO), sd = sd(USO)) %>% 
+  ggplot(aes(x = date, y = USO, col = USO)) +
+  geom_line(show.legend = F) + geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd),
+                              alpha = 0.06,
+                              col = "orange") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(title = "Daily Volatility Compared To Constant",
+       x = "")
+  
+sd.USO
+```
+
+To take a more in-depth look at the histogram data, distribution moments (average, standard deviation, skewness and kurtosis) are presented in the following table:
+
+```{r, echo=FALSE}
+
+# compute moment statistics, assign to a dataframe 
+
+mom_stats <- returns %>% 
+  dplyr::summarise(
+    mean = mean(log_returns),
+    SD = sd(log_returns),
+    skewness = skewness(log_returns),
+    kurtosis = kurtosis(log_returns),
+    .groups = "keep"
+  )
+
+
+# format into a table using gt
+
+mom_table <- mom_stats %>% gt() %>% 
+  tab_header(
+    title = md("**Asset Distribution Moments**")) %>% 
+  opt_align_table_header(align = "center") %>% 
+  fmt_percent(columns = c(mean, SD), decimals = 3) %>% 
+  fmt_number(columns = c(skewness, kurtosis), decimals = 3) %>% 
+  cols_label(
+    mean = md("**Mean**"),
+    SD = md("**Standard Deviation**"),
+    skewness = md("**Skewness**"),
+    kurtosis = md("**Kurtosis**")) %>% 
+  tab_style(style = cell_fill(color = "lightgrey"), locations = cells_row_groups(groups = everything())) %>%
+  tab_style(style = cell_text(weight = "bold"), locations = cells_row_groups(groups = everything())) %>% 
+  tab_style(style = cell_borders(color = "lightgrey"), locations = cells_body(rows = everything())) %>% 
+  tab_footnote(footnote = "Skewness & Kurtosis are pure numbers (no units).",
+               locations = cells_column_labels(columns = 4:5)) %>% 
+  cols_width(everything() ~ px(150))
+  
+mom_table
+
+```
+
+The table highlights the mean (average) returns, standard deviation (volatility), skewness and kurtosis. Skewness is how skewed to the left or right of the average the distribution is. Kurtosis is how frequently events occur that are considered extreme compared to what a normal distribution would predict. Normal distributions have skewness of 0 and kurtosis of 3. Varying levels of negative skew is seen across all assets, with Long Term Bonds sitting very close to 0. Kurtosis levels differ drastically, with Real Estate exhibiting the most (as mentioned previously above).
+
+Although gold and Long Term Bonds exhibit the least extreme values above, none of these assets appear consistent with a normal distribution.
+
+Below is a static Correlation Matrix between all asset classes:
+
+```{r, echo=FALSE}
+# Arrange data for correlation matrix 
+
+cdata <- returns_wide %>% 
+  select(-date) %>%  drop_na()
+
+# compute static or "kendall" correlations using the stats package
+
+cordata <- cdata %>% 
+  stats::cor(., method = "kendall")
+
+# significance tests 
+
+cor.sig <- cor.mtest(cdata, conf.level = 0.95)$p
+
+# plot using the corrplot package
+
+  corrplot(cordata,
+         title = "",
+         method = "number",
+         type = 'lower', 
+         order = 'hclust',
+         tl.col = 'black',
+         cl.ratio = 0.2,
+         tl.srt = 45,
+         col = COL2("PuOr", 10))
+
+```
+
+Note the highest static correlation appears to be between Real Estate and US Equities.
+
+Further analysis on the correlation between Energy Liquids and Gold has found that the correlation differs over time. Windows of 25, 75, and 252 days were used, plotted against the static correlation found in the above matrix:
+
+```{r, echo=FALSE}
+# create a rolling correlation between USO and GLD with windows of 25, 75, and 252 business days. 
+# create df 
+df.rollcor <- returns_wide %>% 
+  select(date, USO, GLD) %>%  drop_na()
+
+rollcor <- df.rollcor %>% 
+  mutate(cor25 = slider::pslide_dbl(
+    .l = list(USO, GLD),
+    .f = ~ cor(.x, .y,),
+    .before = 25,
+    .after = 0,
+    .complete = T
+  )) %>% 
+  mutate(cor75 = slider::pslide_dbl(
+    .l = list(USO, GLD),
+    .f = ~ cor(.x, .y,),
+    .before = 75,
+    .after = 0,
+    .complete = T
+  )) %>% 
+  mutate(cor252 = slider::pslide_dbl(
+    .l = list(USO, GLD),
+    .f = ~ cor(.x, .y,),
+    .before = 252,
+    .after = 0,
+    .complete = T
+  )) %>% 
+  drop_na()
+
+# plot it 
+  
+rollcorplot <- rollcor %>%  
+ggplot(aes(x = date, y = cor25)) +
+  geom_line(aes( color = "25 days")) +
+   geom_line(aes(x = date, y = stats::cor(USO, GLD, method = "kendall"), color = "Static")) +
+  geom_line(aes(x = date, y = cor75, color = "75 days")) +
+  geom_line(aes(x = date, y = cor252, color = "252 days")) + 
+   scale_color_manual(name = "Window",
+                      breaks = c("25 days", "Static", "75 days", "252 days"),
+                      values = c("orange", "black", "purple", "green")) +
+  labs(title = "Rolling Correlations Between USO & GLD (25, 75, 252 days)",
+       x = "", y = "Correlation Coefficient")
+  
+rollcorplot
+
+
+
+```
+
+This highlights that the volatility of the correlation between Gold and Energy Liquids varies over time. It is significantly amplified when measured over a shorter window.
+
+To reliably test whether each asset class matches a normal distribution, the Jarque-Bera Normality Test has been computed. If the statistic is 0, then the data follows a normal distribution. Here are the results from the test:
+
+```{r, echo=FALSE}
+
+# compute jarque bera stats
+
+jb_test <- returns %>% 
+  group_by(symbol) %>% 
+  dplyr::do(broom::tidy(moments::jarque.test(.$log_returns))) 
+  
+jb_table <- jb_test %>% gt() %>% 
+ cols_width(everything() ~ px(150)) %>% 
+  tab_style(style = cell_fill(color = "lightgrey"), locations = cells_row_groups(groups = everything())) %>%
+  tab_style(style = cell_text(weight = "bold"), locations = cells_row_groups(groups = everything())) %>% 
+  tab_style(style = cell_borders(color = "lightgrey"), locations = cells_body(rows = everything())) %>% 
+  opt_align_table_header(align = "center") %>% 
+  cols_label(
+    statistic = md("**Statistic**"),
+    p.value = md("**P. Value**"),
+    method = md("**Method**"),
+    alternative = md("**Alternative**")) %>% 
+  tab_header(
+    title = md("**Jarque-Bera Normality Test**")) %>% 
+  opt_align_table_header(align = "center") %>% 
+  cols_hide(4) %>% 
+  fmt_number(columns = statistic, decimals = 2, sep_mark = ",")
+  
+ 
+  
+  
+
+jb_table
+
+
+```
+
+Notice all the values differ significantly from 0, further solidifying that these distributions are non-normal.
+
+```{r, echo=FALSE, include=FALSE}
+KStest <- returns %>%
+  group_by(symbol) %>% 
+  dplyr::do(broom::tidy(stats::ks.test(.$log_returns, y = "pnorm")))
+KStest
+
+```
+
+To test this further, the US equities (SPY) asset class has been run through another normality test, the **Kolmogorov-Smirnov** Test:
+
+-   Statistic: 0.4820142
+-   P. Value: 0
+
+since the P. Value is 0, we have sufficient evidence to say that US equities do not follow a normal distribution.

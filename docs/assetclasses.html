@@ -109,7 +109,15 @@ ul.task-list li input[type="checkbox"] {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface"><strong>Preface</strong></a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><strong>Summary</strong></a></li>
+  <li><a href="#findings" id="toc-findings" class="nav-link" data-scroll-target="#findings"><strong>Findings</strong></a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -131,8 +139,1099 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<section id="preface" class="level3">
+<h3 class="anchored" data-anchor-id="preface"><strong>Preface</strong></h3>
+<p>Historical price data across multiple asset classes has been used to analyze their returns and formulate conclusions. The chosen data is as follows:</p>
+<ul>
+<li>US Long Term Bonds: <a href="https://etfdb.com/etf/TLT/#etf-ticker-profile" class="uri">https://etfdb.com/etf/TLT/#etf-ticker-profile</a></li>
+<li>Energy Liquids, United States Oil Fund: <a href="https://etfdb.com/etf/USO/#etf-ticker-profile" class="uri">https://etfdb.com/etf/USO/#etf-ticker-profile</a><br>
+</li>
+<li>Gold: <a href="https://etfdb.com/etf/GLD/#etf-ticker-profile" class="uri">https://etfdb.com/etf/GLD/#etf-ticker-profile</a></li>
+<li>Real Estate: <a href="https://etfdb.com/etf/VNQ/#etf-ticker-profile" class="uri">https://etfdb.com/etf/VNQ/#etf-ticker-profile</a></li>
+<li>US Equities: <a href="https://etfdb.com/etf/SPY/#etf-ticker-profile" class="uri">https://etfdb.com/etf/SPY/#etf-ticker-profile</a></li>
+</ul>
+<p>Follow the attached links for more information.</p>
+<p>Note that throughout the visualizations in this document, the data chosen to represent the asset classes will be identified using their ticker:</p>
+<ul>
+<li>US Long Term Bonds: “TLT”.</li>
+<li>Energy Liquids: “USO”.</li>
+<li>Gold: “GLD”.</li>
+<li>Real Estate: “VNQ”.</li>
+<li>US Equities: “SPY”.</li>
+</ul>
+</section>
+<section id="summary" class="level3">
+<h3 class="anchored" data-anchor-id="summary"><strong>Summary</strong></h3>
+<ul>
+<li>Energy Liquids are the most volatile.</li>
+<li>Real Estate is the most susceptible to extreme or infrequent events.</li>
+<li>The returns of Real Estate and US Equities have the highest static correlation.</li>
+<li>The correlation of returns between Gold and Energy Liquids is non-constant, differing over time.</li>
+<li>None of the asset classes appear consistent with a normal distribution, backed by normality testing.</li>
+</ul>
+</section>
+<section id="findings" class="level3">
+<h3 class="anchored" data-anchor-id="findings"><strong>Findings</strong></h3>
+<p>To frame the analysis that follows, below is a chart that may prove helpful to refer to. It includes prices across asset classes since 2014:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="assetclasses_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Histograms are a good representation of the distribution of returns. Returns are categorized by volume within a certain range, then plotted based on the density of the occurrences within those ranges. Below are a series of histograms for all the asset classes being analyzed:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="assetclasses_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The shapes of the distributions seem quite similar, apart from a few key differences. One is that Energy Liquids (USO) is clearly less compact around its average return. This points towards higher volatility. Another detail to notice is the black bars below the distributions. These indicate data points. Note that the Real Estate class (VNQ) has many points that occur outside the ‘meat’ of the distribution. This indicates a higher probability of extreme returns in relation to its average return (more susceptible to an event such as a market crash).</p>
+<p>For a better visual comparison of the distribution shapes, here is them all overlapped:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="assetclasses_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>For further context into the volatility of Energy Liquids, here is a chart of daily volatility levels in comparison to its constant volatility over time:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="assetclasses_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>To take a more in-depth look at the histogram data, distribution moments (average, standard deviation, skewness and kurtosis) are presented in the following table:</p>
+<div class="cell">
+<div class="cell-output-display">
+
+<div id="vukmolvltq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#vukmolvltq table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#vukmolvltq thead, #vukmolvltq tbody, #vukmolvltq tfoot, #vukmolvltq tr, #vukmolvltq td, #vukmolvltq th {
+  border-style: none;
+}
+
+#vukmolvltq p {
+  margin: 0;
+  padding: 0;
+}
+
+#vukmolvltq .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#vukmolvltq .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#vukmolvltq .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#vukmolvltq .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#vukmolvltq .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#vukmolvltq .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#vukmolvltq .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#vukmolvltq .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#vukmolvltq .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#vukmolvltq .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#vukmolvltq .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#vukmolvltq .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#vukmolvltq .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#vukmolvltq .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#vukmolvltq .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vukmolvltq .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#vukmolvltq .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#vukmolvltq .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#vukmolvltq .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vukmolvltq .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#vukmolvltq .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vukmolvltq .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#vukmolvltq .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vukmolvltq .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#vukmolvltq .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vukmolvltq .gt_left {
+  text-align: left;
+}
+
+#vukmolvltq .gt_center {
+  text-align: center;
+}
+
+#vukmolvltq .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#vukmolvltq .gt_font_normal {
+  font-weight: normal;
+}
+
+#vukmolvltq .gt_font_bold {
+  font-weight: bold;
+}
+
+#vukmolvltq .gt_font_italic {
+  font-style: italic;
+}
+
+#vukmolvltq .gt_super {
+  font-size: 65%;
+}
+
+#vukmolvltq .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#vukmolvltq .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#vukmolvltq .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#vukmolvltq .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#vukmolvltq .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#vukmolvltq .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#vukmolvltq .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table" style="table-layout: fixed;; width: 0px" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <colgroup>
+    <col style="width:150px;">
+    <col style="width:150px;">
+    <col style="width:150px;">
+    <col style="width:150px;">
+  </colgroup>
+  <thead>
+    <tr class="gt_heading">
+      <td colspan="4" class="gt_heading gt_title gt_font_normal gt_bottom_border" style=""><strong>Asset Distribution Moments</strong></td>
+    </tr>
+    
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<strong>Mean</strong>"><strong>Mean</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<strong>Standard Deviation</strong>"><strong>Standard Deviation</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<strong>Skewness</strong><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;&quot;><sup>1</sup></span>"><strong>Skewness</strong><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<strong>Kurtosis</strong><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;&quot;><sup>1</sup></span>"><strong>Kurtosis</strong><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr class="gt_group_heading_row">
+      <th colspan="4" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="GLD">GLD</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="GLD  mean" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0.018%</td>
+<td headers="GLD  SD" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0.893%</td>
+<td headers="GLD  skewness" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">−0.106</td>
+<td headers="GLD  kurtosis" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">6.042</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="4" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="SPY">SPY</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="SPY  mean" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0.042%</td>
+<td headers="SPY  SD" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">1.134%</td>
+<td headers="SPY  skewness" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">−0.813</td>
+<td headers="SPY  kurtosis" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">16.899</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="4" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="TLT">TLT</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="TLT  mean" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0.011%</td>
+<td headers="TLT  SD" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0.924%</td>
+<td headers="TLT  skewness" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">−0.001</td>
+<td headers="TLT  kurtosis" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">8.772</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="4" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="USO">USO</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="USO  mean" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">−0.061%</td>
+<td headers="USO  SD" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">2.561%</td>
+<td headers="USO  skewness" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">−1.598</td>
+<td headers="USO  kurtosis" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">21.701</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="4" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="VNQ">VNQ</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="VNQ  mean" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0.030%</td>
+<td headers="VNQ  SD" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">1.309%</td>
+<td headers="VNQ  skewness" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">−1.809</td>
+<td headers="VNQ  kurtosis" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">32.621</td></tr>
+  </tbody>
+  
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span> Skewness &amp; Kurtosis are pure numbers (no units).</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+</div>
+</div>
+<p>The table highlights the mean (average) returns, standard deviation (volatility), skewness and kurtosis. Skewness is how skewed to the left or right of the average the distribution is. Kurtosis is how frequently events occur that are considered extreme compared to what a normal distribution would predict. Normal distributions have skewness of 0 and kurtosis of 3. Varying levels of negative skew is seen across all assets, with Long Term Bonds sitting very close to 0. Kurtosis levels differ drastically, with Real Estate exhibiting the most (as mentioned previously above).</p>
+<p>Although gold and Long Term Bonds exhibit the least extreme values above, none of these assets appear consistent with a normal distribution.</p>
+<p>Below is a static Correlation Matrix between all asset classes:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="assetclasses_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Note the highest static correlation appears to be between Real Estate and US Equities.</p>
+<p>Further analysis on the correlation between Energy Liquids and Gold has found that the correlation differs over time. Windows of 25, 75, and 252 days were used, plotted against the static correlation found in the above matrix:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="assetclasses_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>This highlights that the volatility of the correlation between Gold and Energy Liquids varies over time. It is significantly amplified when measured over a shorter window.</p>
+<p>To reliably test whether each asset class matches a normal distribution, the Jarque-Bera Normality Test has been computed. If the statistic is 0, then the data follows a normal distribution. Here are the results from the test:</p>
+<div class="cell">
+<div class="cell-output-display">
+
+<div id="ykrwwjlyfy" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ykrwwjlyfy table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#ykrwwjlyfy thead, #ykrwwjlyfy tbody, #ykrwwjlyfy tfoot, #ykrwwjlyfy tr, #ykrwwjlyfy td, #ykrwwjlyfy th {
+  border-style: none;
+}
+
+#ykrwwjlyfy p {
+  margin: 0;
+  padding: 0;
+}
+
+#ykrwwjlyfy .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#ykrwwjlyfy .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ykrwwjlyfy .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ykrwwjlyfy .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ykrwwjlyfy .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ykrwwjlyfy .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ykrwwjlyfy .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ykrwwjlyfy .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ykrwwjlyfy .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#ykrwwjlyfy .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#ykrwwjlyfy .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ykrwwjlyfy .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#ykrwwjlyfy .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#ykrwwjlyfy .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ykrwwjlyfy .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ykrwwjlyfy .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#ykrwwjlyfy .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#ykrwwjlyfy .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#ykrwwjlyfy .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ykrwwjlyfy .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#ykrwwjlyfy .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ykrwwjlyfy .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#ykrwwjlyfy .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ykrwwjlyfy .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ykrwwjlyfy .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ykrwwjlyfy .gt_left {
+  text-align: left;
+}
+
+#ykrwwjlyfy .gt_center {
+  text-align: center;
+}
+
+#ykrwwjlyfy .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ykrwwjlyfy .gt_font_normal {
+  font-weight: normal;
+}
+
+#ykrwwjlyfy .gt_font_bold {
+  font-weight: bold;
+}
+
+#ykrwwjlyfy .gt_font_italic {
+  font-style: italic;
+}
+
+#ykrwwjlyfy .gt_super {
+  font-size: 65%;
+}
+
+#ykrwwjlyfy .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#ykrwwjlyfy .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#ykrwwjlyfy .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#ykrwwjlyfy .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#ykrwwjlyfy .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#ykrwwjlyfy .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#ykrwwjlyfy .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table" style="table-layout: fixed;; width: 0px" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <colgroup>
+    <col style="width:150px;">
+    <col style="width:150px;">
+    <col style="width:150px;">
+  </colgroup>
+  <thead>
+    <tr class="gt_heading">
+      <td colspan="3" class="gt_heading gt_title gt_font_normal gt_bottom_border" style=""><strong>Jarque-Bera Normality Test</strong></td>
+    </tr>
+    
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<strong>Statistic</strong>"><strong>Statistic</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="<strong>P. Value</strong>"><strong>P. Value</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="<strong>Alternative</strong>"><strong>Alternative</strong></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr class="gt_group_heading_row">
+      <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="GLD">GLD</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="GLD  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">884.93</td>
+<td headers="GLD  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
+<td headers="GLD  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="SPY">SPY</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="SPY  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">18,636.13</td>
+<td headers="SPY  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
+<td headers="SPY  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="TLT">TLT</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="TLT  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">3,170.74</td>
+<td headers="TLT  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
+<td headers="TLT  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="USO">USO</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="USO  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">34,253.70</td>
+<td headers="USO  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
+<td headers="USO  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
+    <tr class="gt_group_heading_row">
+      <th colspan="3" class="gt_group_heading" style="background-color: #D3D3D3; font-weight: bold;" scope="colgroup" id="VNQ">VNQ</th>
+    </tr>
+    <tr class="gt_row_group_first"><td headers="VNQ  statistic" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">84,745.88</td>
+<td headers="VNQ  p.value" class="gt_row gt_right" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">0</td>
+<td headers="VNQ  alternative" class="gt_row gt_left" style="border-left-width: 1px; border-left-style: solid; border-left-color: lightgrey; border-right-width: 1px; border-right-style: solid; border-right-color: lightgrey; border-top-width: 1px; border-top-style: solid; border-top-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: lightgrey;">greater</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+</div>
+</div>
+<p>Notice all the values differ significantly from 0, further solidifying that these distributions are non-normal.</p>
+<p>To test this further, the US equities (SPY) asset class has been run through another normality test, the <strong>Kolmogorov-Smirnov</strong> Test:</p>
+<ul>
+<li>Statistic: 0.4820142</li>
+<li>P. Value: 0</li>
+</ul>
+<p>since the P. Value is 0, we have sufficient evidence to say that US equities do not follow a normal distribution.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
