@@ -1,5 +1,17 @@
 ---
-title: "profile"
+title: "Connor Beebe"
+image: profilepic.png
+about: 
+  template: jolla
+  image-shape: round
+  image-width: 15em
+  links: 
+    - text: Email
+      icon: envelope
+      href: mailto:cbeebe@ualberta.ca
+    - text: GitHub
+      icon: github
+      href: https://github.com/cbeebe27
 ---
 
 This is a Quarto website.

@@ -1,0 +1,524 @@
+---
+title: "Pairs Quant Model"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,warning = F,message = F, tidy = FALSE, strip.white = TRUE)
+library(tidyquant)
+library(tidyverse)
+options("getSymbols.warning4.0" = FALSE)
+library(timetk)
+library(TTR)
+library(PerformanceAnalytics)
+library(tools)
+library(quantmod)
+library(plotly)
+library(tseries)
+library(urca)
+library(roll)
+library(RTL)
+library(foreach)
+library(doParallel)
+library(broom)
+library(kableExtra)
+library(knitr)
+library(patchwork)
+library(gt)
+
+```
+
+```{r}
+duk <- tq_get("DUK", get = "stock.prices", from = "2000-01-01") %>% drop_na() %>% transmute(date = date, 
+                                                                                         'duk'= adjusted)
+nee <- tq_get("NEE", get = "stock.prices", from = "2000-01-01") %>% drop_na() %>% transmute(date = date, 
+                                                                                                       'nee' = adjusted)
+```
+
+### **Preface**
+
+[Duke Energy](https://investors.duke-energy.com/overview/default.aspx?_gl=1*rn8bad*_ga*MjA5NDc1NDk1Mi4xNzAxNjU0NjI1*_ga_HB58MJRNTY*MTcwMTY1NDYyNS4xLjAuMTcwMTY1NDYyNy4wLjAuMA..&_ga=2.45708705.465954040.1701654625-2094754952.1701654625) and [NextEra Energy](https://www.investor.nexteraenergy.com/.html) are two of the largest utility companies in the US and both trade on the New York Stock Exchange. The [industry](https://www2.deloitte.com/us/en/insights/industry/power-and-utilities/power-and-utilities-industry-outlook.html) has become much more volatile with increased regulations and pressure for these companies to decarbonize and achieve net-zero emissions. The regulatory environment is changing faster than it ever has and large capital expenditures are required of these companies to adjust. This is evident in the recent movements in share prices of industry players such as Duke and NextEra.
+
+A few Key points:
+
+-   Operate in the same industry.
+-   Susceptible to the same economic and market factors.
+-   Relationship between price movements has increased since 2020.
+-   Potentially cointegrated.
+
+The above discussion points to a pairs trading strategy that takes advantage of mean reversion tactics. Throughout this document, the full process of a quantitative pairs trading model is explored in detail. Each section is meant to concisely flow through from the rationale of the model all the way to the discovery and findings after testing it.
+
+```{r}
+ normd <- inner_join(duk, nee, by = "date") %>% 
+  mutate(diff = nee - duk)
+
+
+normd %>% plot_ly(x = ~date, y = ~ duk, name = "DUK", type = 'scatter', mode = 'lines') %>% 
+  add_trace(y = ~nee, name = "NEE", type = "scatter", mode = "lines") %>% layout(title = "Price Movements Through Time: NEE & DUK",
+                                                                                 xaxis = list(title = ""),
+                                                                                 yaxis = list(title = 'USD $'))
+```
+
+### **Rationale**
+
+Pairs trading operates under the assumption that two asset prices are cointegrated through time. This means that the mean and variance are considered to be 'time-invariant'. Above is a depiction of prices through time. I wanted to try this on something that didn't appear to be perfect at first glance. This means that while one price may move more due to differentiating factors, there is a chance the spread will mean revert.
+
+#### Cointegration
+
+Cointegration is a concept that won Clive W.J. Granger a [nobel prize in 2003](https://www.nobelprize.org/prizes/economic-sciences/2003/granger/biographical/), and is an excellent measure for pairs trading. This measure allows the construction of a single stationary time series from two asset price time series. This is done by finding the cointegration coefficient, or the cointegration beta.
+
+This differs from correlation in that correlation describes the relationship between the returns, whilst cointegration is a long-term relationship between prices.
+
+-   Returns are normally used for analysis because they are regarded as being much closer to stationary.
+-   Spurious correlation is the result of a regression on unrelated prices, as prices are generally non-stationary.
+-   In order to find out if the linear regression on prices produces a stationary residual, the Augmented Dickey-Fuller test can be applied to two assets that appear related.
+-   If the residual is stationary, this indicates that the two asset prices are cointegrated.
+-   Returns will be used to calculate the hedge ratio.
+
+The problem becomes which asset to select as the dependent variable. To solve this, run the regression twice and select the dependent variable that produces the highest significance in the ADF test. Below is an output of results from the ADF test on NEE - DUK:
+
+```{r}
+dat <- inner_join(duk, nee, by = "date")
+# regress
+fit1 <- lm(nee ~ duk, data = dat)
+fit2 <- lm(duk ~ nee, data = dat)
+# construct two spreads
+hedge1 <- fit1$coefficients[2]
+hedge2 <- fit2$coefficients[2]
+spread1t <- dat %>% transmute(date = date,  spread1 = dat$nee - (hedge1*dat$duk))
+spread2t <- dat %>% transmute(date = date, spread2 = dat$duk - (hedge2*dat$nee))
+spreads <- inner_join(spread1t, spread2t, by = 'date')
+# spreads %>% plot_ly(x = ~date, 
+                   # y = ~spread1,
+                    #type = 'scatter', 
+                    #mode = 'lines',
+                    #name = 'Spread 1')
+# calculate beta on returns for hedge ratio when calculating returns.
+ret <- normd %>% mutate(ret.duk = log(duk / lag(duk)),
+                 ret.nee = log(nee / lag(nee))) %>% select(date, ret.nee, ret.duk) %>% drop_na()
+# regress on returns for hedge ratio 
+hr <- lm(ret.nee ~ ret.duk, data = ret)
+
+
+
+```
+
+```{r}
+# test the results
+spread1 <- dat$nee - (hedge1*dat$duk)
+spread2 <- dat$duk - (hedge2*dat$nee)
+adf1 <- ur.df(spread1, type = 'drift', selectlags = 'AIC')
+adf2 <- ur.df(spread2, type = 'drift', selectlags = 'AIC')
+summ <- summary(adf1)
+
+tibble(
+  Test.Statistic = -2.601,
+  Critical.Value = -2.57
+) %>% gt() %>%  tab_options(
+  data_row.padding = px(6),
+  heading.align = 'left',
+  column_labels.background.color = 'dodgerblue4',
+  heading.title.font.size = 26,
+  footnotes.font.size = 8
+) %>% 
+  tab_style(style = cell_text(color = 'dodgerblue4',
+                              weight = 'bold'),
+            locations = cells_title(groups = 'title')) %>% tab_options(table.font.size = 20, heading.title.font.size = 20)
+```
+
+Spread 1, which utilizes NEE as the dependent variable, has a more negative test statistic which is significant at the 90% confidence level. This isn't fantastic, but it means we can assume our series is somewhat stationary and use this spread to conduct our quantitative trading strategy, utilizing a beta of 0.625 (calculated by a regression on returns) on DUK as our hedge ratio.
+
+```{r}
+spreads %>% plot_ly(x = ~date, 
+                    y = ~spread1,
+                    type = 'scatter', 
+                    mode = 'lines',
+                    name = 'Spread 1') %>% layout(title = 'NEE / DUK Spread',
+                                                  xaxis = list(title = ''),
+                                                  yaxis = list(title ='Spread'))
+```
+
+### **Signals & Rules**
+
+To set trade signals, I'll be using Z-score. The Z score measures how many standard deviations the spread is from the mean. For this strategy, I will use a 10 day window for mean and standard deviation.
+
+-   When the Z score crosses the upper threshold (parameter 1), Sell NEE and buy DUK (Short the spread).
+-   When the Z score crosses the lower threshold (parameter 2), Buy NEE and Sell DUK (Long the spread).
+-   When the profit-take and stop-loss thresholds (parameter 3 and 4) are crossed, it is time to exit.
+-   Stop-loss will remain at -2.5 and 2.5.
+-   Profit take will remain at -0.2 and 0.2.
+
+Below is a chart depicting the process from a one year snipped of the data for clarity. The short and long parameter values chosen are arbitrarily set and will be optimized later.
+
+```{r, echo=FALSE}
+zscore <- spread1t %>% transmute(date = date,
+                                  spread = spread1,
+                                   rolling_avg = rollmean(spread1, k=10, fill=NA, align='right'),
+                                   rolling_sd = roll_sd(spread1, width = 10),
+                                   zscore = (spread - rolling_avg) / rolling_sd)
+
+zscore %>% filter(date > '2011-01-01' & date < '2011-12-31') %>% plot_ly(x = ~date,
+                   y = ~zscore,
+                   type = 'scatter',
+                   mode = 'lines', name = 'Z-Score') %>% 
+  add_segments(x = "2011-01-01", xend = "2011-12-31", y = 1.8, yend = 1.8, name = 'Short') %>% 
+  add_segments(x = "2011-01-01", xend = "2011-12-31", y = -1.8, yend = -1.8, name = 'Long') %>% 
+  add_segments(x = "2011-01-01", xend = "2011-12-31", y = c(-2.5,2.5), yend = c(-2.5,2.5), name = 'Stop-Loss', line = list(dash = "dash")) %>% 
+  add_segments(x = "2011-01-01", xend = "2011-12-31", y = c(-0.2,0.2), yend = c(-0.2,0.2), name = 'Profit Take',line = list(dash = "dash")) %>% layout(
+    title = list(text = 'Trade Process', x = 50),
+    xaxis = list(title = " "),
+    yaxis = list(
+      title = "Z-Score",
+      separators = '.,',
+      tickformat = ",d"
+    ))
+  
+```
+
+The logic of the model will be built so as to accommodate for all of the factors shown above, and execute positions exactly according to the signals and rules laid out.
+
+```{r}
+d <- tq_get("DUK", get = "stock.prices", from = "2000-01-01") %>% drop_na() %>% rename_all(toTitleCase)
+n <- tq_get("NEE", get = "stock.prices", from = "2000-01-01") %>% drop_na() %>% rename_all(toTitleCase)
+df2 <- d %>% tk_xts(date_var = Date) %>% 
+  adjustOHLC(., use.Adjusted = T) %>% 
+  tk_tbl(rename_index = "Date") %>% 
+  select(-Adjusted) %>% dplyr::mutate(across(where(is.numeric), round, 2)) %>% rename(date = Date)
+df1 <- n %>% tk_xts(date_var = Date) %>% 
+  adjustOHLC(., use.Adjusted = T) %>% 
+  tk_tbl(rename_index = "Date") %>% 
+  select(-Adjusted) %>% dplyr::mutate(across(where(is.numeric), round, 2)) %>% rename(date = Date, 
+                                                                                      'Open2' = Open,
+                                                                                      'Low2' = Low,
+                                                                                      'High2' = High,
+                                                                                      'Close2' = Close)
+
+ddf <- inner_join(df1, df2, by = 'date')
+ddf <- inner_join(ddf, zscore, by = 'date')
+cutoff <- "2020-01-01"
+train <- ddf %>% dplyr::filter(date < cutoff)
+test <- ddf %>% dplyr::filter(date >= cutoff)
+
+# with indicators 
+
+```
+
+```{r}
+# set parameters
+par1 <- 1.8
+par2 <- -1.8
+shortpt <- 0.2
+longpt <- -0.2
+shortsl <- 2.5
+longsl <- -2.5
+# from returns regression for proper returns calculations using this hedge ratio. Price ratio only used to contruct the time series. 
+beta <- hr$coefficients[2]
+```
+
+```{r}
+strategy <- function(data = train,
+                      par1 = 1.8,
+                      par2 = -1.8) {
+ with.signals <- data %>% dplyr::mutate(
+      # returns
+      retClCl = Close / dplyr::lag(Close) - 1,
+      retOpCl = (Close - Open) / Close,
+      retClOp = Open / dplyr::lag(Close) - 1,
+      retClCl2 = Close2 / dplyr::lag(Close2) - 1,
+      retOpCl2 = (Close2 - Open2) / Close2,
+      retClOp2 = Open2 / dplyr::lag(Close2) - 1,
+ # as per above Determine signals for entering and exiting positions
+    enter_long = zscore < par2,
+    exit_long = zscore > longpt | zscore < longsl,
+    enter_short = zscore > par1,
+    exit_short = zscore < shortpt | zscore > shortsl,
+    
+    # Initialize signal. Set the position to 0.
+    signal = NA_real_,
+    when2close = 0
+  )
+
+# determine the signal and update position. This logic follows the same as a case_when, just in a loop. This is tracking the signal to update the position. This is necessary because I only want one position open at any given time to match my risk appetite, and my position relies on being able to check the previous state of the signal at any given point.  
+for (i in 2:nrow(with.signals)) {
+  with.signals$signal[i] <- case_when(
+    with.signals$enter_long[i] & with.signals$when2close[i - 1] == 0 ~ 1,
+    with.signals$exit_long[i] & with.signals$when2close[i - 1] == 1 ~ 0,
+    with.signals$enter_short[i] & with.signals$when2close[i - 1] == 0 ~ -1,
+    with.signals$exit_short[i] & with.signals$when2close[i - 1] == -1 ~ 0,
+    TRUE ~ NA_real_
+  )
+
+  with.signals$when2close[i] <- case_when(
+    !is.na(with.signals$signal[i]) ~ with.signals$signal[i],
+    TRUE ~ with.signals$when2close[i - 1]
+  )
+}
+
+# Now include trade column, When the when2close column hits 0, the exiting parameter is met. Close the next day. Also define PL.
+
+dat <- with.signals %>% select(-enter_long, -enter_short, -exit_long, -exit_short) %>% 
+  mutate(signal = replace_na(with.signals$signal, 0),
+         trade = replace_na(lag(when2close) - lag(when2close, n = 2L),0),
+         position = cumsum(trade),                  # need to account for long side and short side of the spread, as well as beta.
+        ret_new = ifelse(position == trade & trade == 1, (position *retOpCl)+(beta * -position * retOpCl2),
+                         ifelse(position == trade & trade == -1, (position *retOpCl)+(beta * -position * retOpCl2),0)),
+                                                  # long and short side are already covered as position carries a sign for long and short.
+        ret_exist = ifelse(position !=0 & trade == 0,(position *retOpCl)+(beta * -position * retOpCl2),0),
+        ret_others = ifelse(position - trade != 0 & trade == 1, (retClOp * trade) + (retClOp2 * -trade * beta),
+                            ifelse(position - trade != 0 & trade == -1, (retClOp * trade) + (retClOp2 * -trade * beta),0)),
+        ret = ret_new + ret_exist + ret_others,
+        pl = cumprod(1+ret))
+return(dat)
+}
+ 
+  
+  
+
+# check <- strategy(data = train, par1 = 1.8, par2 = -1.8)
+# check <- check %>% timetk::tk_xts(date_var = date)
+# RTL::tradeStats(check$ret)["CumReturn"]
+```
+
+Here is a plot of what the strategy looks like with the set values in the plot above, over the same time frame:
+
+```{r}
+check <- strategy(data = train, par1=1.8, par2 = -1.8) %>% filter(date > '2011-01-01' & date < '2012-01-01')
+check <- check %>% tk_xts(date_var = date)
+
+
+fig <- plot(check$Close, col = 'purple', main = "2011 Results: DUK(Purple) NEE(Green)")
+fig <- lines(check$Close2, col = 'green')
+fig <- xts::addSeries(
+  check$trade,
+  main = "Trades",
+  on = NA,
+  type = "h",
+  col = "blue",
+  lty = 1,
+  lwd = 1,
+  pch = 0
+)
+fig <- xts::addSeries(
+  check$position,
+  main = "Positions",
+  on = NA,
+  type = "h",
+  col = "blue",
+  lty = 1,
+  lwd = 1,
+  pch = 0
+)
+fig <- xts::addSeries(
+  check$pl,
+  main = "CumEQ",
+  on = NA,
+  type = "l",
+  col = "blue",
+  lty = 1,
+  lwd = 1,
+  pch = 0
+)
+fig
+```
+
+The data used to observe the strategy (training data) is from January 2000 to the end of 2019.
+
+### **Risk Appetite and Desired Exposure**
+
+I am attempting to make this model as usable and realistic as possible for me. As this is my first construction of a pairs model and I have very limited capital to deploy, I have baked in the following constraints in the trade execution logic:
+
+-   I only want to hold one position at a time. This means even if the z-score moves across an execution parameter before moving across the profit-take line, no new trades will be entered. This is to minimize my exposure and limit the transaction costs associated with a very high volume of trades. This constraint will help, but the nature of setting up a model like this by using the variation in z - score will still result in a fairly active model producing a high number of trades.
+-   Stop-Loss and Profit-Take levels have been included. These constraints act to minimize risk. Stop-Loss is included so if the spread continues to move to extreme deviation I'll cut my losses. As I am using adjusted closing prices to compute the z-score, Profit-Take levels will minimize the risk in a large movement at the open the following day, or if the z-score approaches zero but does not cross, I'll still realize profit. These were actively included in the execution logic as well.
+
+```{r}
+# set paramater df
+out <- expand.grid(
+  par1 = seq(from = 0.5, to = 2.1, by = 0.1),
+  par2 = seq(from = -0.5, to = -2.1, by = -0.1)
+)
+
+# use 7 cores
+cores <- detectCores() - 1
+cl <- makeCluster(cores)
+registerDoParallel(cl)
+
+res <- foreach(
+  i = 1:nrow(out),
+  .combine = "cbind",
+  .packages = c(
+    "tidyverse",
+    "timetk",
+    "tidyquant",
+    "PerformanceAnalytics"
+  )
+) %dopar% {
+  as.numeric(RTL::tradeStats(
+    strategy(data = train, out[i, "par1"], out[i, "par2"]) %>% dplyr::select(date, ret)
+  ))
+}
+stopCluster(cl)
+
+
+base <- strategy(data = train, par1=1.8, par2 = -1.8)
+res <- tibble::as_tibble(t(res))
+
+colnames(res) <- names(RTL::tradeStats(x = base %>% dplyr::select(date,ret)))
+out <- cbind(out, res)
+```
+
+### **Optimizing In Allignment With Risk Appetite**
+
+During optimization, I will look to optimize the z-score values for entering into a long or short position on the spread that will maximize my cumulative return. This will be combined with minimizing the drawdowns of my strategy due to the limited capital I have available to deploy and avoid large losses. I also want to compare the percentage of winning periods to cumulative return to test for any over fitting. The exact thresholds (while maximizing Cumulative Return) are as follows:
+
+-   Drawdowns less than 30%.
+-   \% win greater than 30%.
+
+After running iterations over different parameter values, the below charts show the optimal parameter values that maximize the value added based on my defined risk appetite indicators.
+
+```{r}
+par1 <- unique(out$par1)
+par2 <- unique(out$par2)
+
+CumReturn <- out %>% select(par1, par2, CumReturn) %>% pivot_wider(values_from = CumReturn, names_from = par2) %>% 
+  select(-1) %>% as.matrix()
+plot1 <- plot_ly(x = ~ par2,
+        y = ~ par1,
+        z = ~ CumReturn) %>% add_surface() %>% layout(title = "Cumulative Return")
+                                                
+
+```
+
+```{r}
+DrawDowns <- out %>% dplyr::select(par1, par2, DD.Max) %>%
+  tidyr::pivot_wider(values_from = DD.Max, names_from = par2) %>%
+  dplyr::select(-1) %>% as.matrix()
+plot2 <- plot_ly(x = ~ par2,
+        y = ~ par1,
+        z = ~ DrawDowns) %>% add_surface() %>% layout(title = "Drawdowns")
+
+```
+
+```{r}
+
+Win <- out %>% dplyr::select(par1, par2, `%.Win`) %>%
+  tidyr::pivot_wider(values_from = `%.Win`, names_from = par2) %>%
+  dplyr::select(-1) %>% as.matrix()
+plot3 <- plot_ly(x = ~ par2,
+        y = ~ par1,
+        z = ~ Win) %>% add_surface() %>% layout(title = "%Win") 
+
+plot1
+plot2
+plot3
+
+```
+
+A couple thoughts based on the above plots:
+
+-   Drawdowns have very little variation. I believe this is due to me incorporating profit-take and stop-loss levels into the model, which combats against large hits to capital preservation.\
+-   \% Win higher than anticipated.
+-   All objectives seem to peak in a similar area.
+
+### **Strategy Results and Backtesting**
+
+After reviewing the data shown in the plots, the following parameter combinations hit the mark:
+
+```{r}
+out %>% filter(`%.Win` > 0.30, DD.Max > -0.30) %>% select(par1, par2, CumReturn, Ret.Ann, `%.Win`, DD.Max) %>%  arrange(desc(CumReturn)) %>% slice_head(n = 4) %>% round(2) %>% gt() %>%  tab_options(
+  data_row.padding = px(6),
+  heading.align = 'left',
+  column_labels.background.color = 'dodgerblue4',
+  heading.title.font.size = 26,
+  footnotes.font.size = 8
+) %>% 
+  tab_style(style = cell_text(color = 'dodgerblue4',
+                              weight = 'bold'),
+            locations = cells_title(groups = 'title')) %>% tab_options(table.font.size = 20, heading.title.font.size = 20)
+```
+
+The model wants the short trigger to happen sooner (Z = 0.6) and the long trigger slightly later (z = -2.0). Lets backtest this from 2020 onwards. The price movements since 2020 look very favorable for a strategy of this nature:
+
+```{r}
+normd %>% filter(date > "2019-12-31") %>%   plot_ly(x = ~date, y = ~ duk, name = "DUK", type = 'scatter', mode = 'lines') %>% 
+  add_trace(y = ~nee, name = "NEE", type = "scatter", mode = "lines") %>% layout(title = "Price Movements Through Time: NEE & DUK",
+                                                                                 xaxis = list(title = ""),
+                                                                                 yaxis = list(title = 'USD $'))
+```
+
+The performance of the position on the backtesting data:
+
+```{r}
+backtest <- strategy(data = test, par1 = 0.6, par2 = -1.8)
+final <- backtest %>% tk_xts(date_var = date)
+fig2 <- plot(final$Close, col = 'purple', main = "Strategy Results: DUK(Purple) NEE(Green)")
+fig2<- lines(final$Close2, col = 'green')
+fig2 <- xts::addSeries(
+  final$trade,
+  main = "Trades",
+  on = NA,
+  type = "h",
+  col = "blue",
+  lty = 1,
+  lwd = 1,
+  pch = 0
+)
+fig2 <- xts::addSeries(
+  final$position,
+  main = "Positions",
+  on = NA,
+  type = "h",
+  col = "blue",
+  lty = 1,
+  lwd = 1,
+  pch = 0
+)
+fig2 <- xts::addSeries(
+  final$pl,
+  main = "CumEQ",
+  on = NA,
+  type = "l",
+  col = "blue",
+  lty = 1,
+  lwd = 1,
+  pch = 0
+)
+fig2
+```
+
+Before looking further, lets look at transaction costs on the [NYSE](https://www.nyse.com/publicdocs/nyse/markets/nyse/NYSE_Price_List.pdf). 98 spread trades (196 total) were executed at a cost per transaction of \$0.0012. This assumes only entering 1 spread position per transaction at a volume of 1, which I described in my risk appetite above. This is immaterial with such a low volume but if position size were to be scaled up, this could get significant.
+
+Lets Check the stats:
+
+```{r}
+Buyhold <- (( backtest$Close %>% last(.) / backtest$Close %>% first(.) ) - 1) + (( backtest$Close2 %>% last(.) / backtest$Close2 %>% first(.) ) - 1)
+
+Stratret <- RTL::tradeStats(backtest %>% select(date, ret)) %>% as.tibble() %>% select(CumReturn, Ret.Ann, `%.Win`, DD.Max) %>%  pivot_longer(cols = 1:4, names_to = 'Metric', values_to = 'Value') %>% mutate(Value = round(Value, 2))
+
+Stratret %>% gt() %>%  tab_options(
+  data_row.padding = px(6),
+  heading.align = 'left',
+  column_labels.background.color = 'dodgerblue4',
+  heading.title.font.size = 26,
+  footnotes.font.size = 8
+) %>% 
+  tab_style(style = cell_text(color = 'dodgerblue4',
+                              weight = 'bold'),
+            locations = cells_title(groups = 'title')) %>% tab_options(table.font.size = 20, heading.title.font.size = 20)
+
+```
+
+This is compared to a Buy and Hold Return (DUK + NEE) of 29%. The returns of the pairs strategy is 14%, which is significantly lower. The 50% win indicates over fitting is not a risk here, as the model only kicked out 14% cumulative equity. This is a quality return, but I was hoping to out pace the buy and hold.
+
+### **Learnings and Review**
+
+I tried to take on something that would be challenging and stretch my abilities. I wanted to conduct a strategy on two assets to increase the complexity of building the model, setting out the parameters, and building in the required logic to pull it off. This not only tested my trading knowledge, but also really pushed the boundaries of my coding ability. Below is a list of either concerns I have, things I learned, or assumptions I had to make simply because I could not effectively include them.
+
+-   The hardest part was building a strategy function that actually worked with my parameters, as well as the profit-take and stop-loss levels that I wanted to include.
+-   This model, while yet only holding one position at a time, has a very high frequency of trades. Even though I briefly discussed this, I would of liked to find a working way to include transaction costs in the model itself.
+-   There are a lot of short positions. These are made under the assumption short selling is always possible, and liquidity is high enough. Finding a way to account for this would greatly improve the model.
+-   I tried to use stop-loss and profit-take to add complexity in place of 'scaling in and out'. With the frequency of trades already occurring, scaling up my position would require a lot more complexity and analysis. I based this on holding one spread unit so I could focus more on having an accurate base.
+-   I am assuming cointegration throughout the entire time series. Ideally, I'd rather test for it over small windows and include that in my trade logic.
+-   I am happy that I was able to produce trade signals that opened and closed positions to my specifications.
+-   The ADF test did not produce great results. I still carried out the model, but this would be great to test on a pair that I find with a better fit.
+-   I initially used the price beta as my hedge ratio, which resulted in a much higher level of cumulative returns. After making this adjustment and correctly using the beta found when regressing on returns, the strategy performance was less optimal, but the process is now correct, barring my logic is 100% correct when calculating returns.
+
+This was an excellent exercise. I am happy with how much it taught me about pairs trading, quantitative modelling and learning how to actually implement and test a strategy in practice.

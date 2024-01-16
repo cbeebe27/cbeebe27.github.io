@@ -9,10 +9,12 @@ website:
       - href: index.qmd
         text: Home
       - about.qmd
+      - pairsmodel.qmd
+      - assetclasses.qmd
 
 format:
   html:
-    theme: cosmo
+    theme: lux
     css: styles.css
     toc: true
 
