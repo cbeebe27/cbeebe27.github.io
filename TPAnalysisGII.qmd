@@ -1,0 +1,262 @@
+---
+title: "GII Transfer Pricing Analysis"
+format: html
+editor: visual
+self_contained: True
+---
+
+```{r, echo=FALSE}
+# set chunk options
+knitr::opts_chunk$set(echo = F, warning = F, message = F, cache = F)
+```
+
+```{r}
+# load required libraries
+library(tidyverse)
+library(gt)
+library(plotly)
+library(cowplot)
+```
+
+## **Purpose**
+
+In order to accurately assess the differentiating factors in the proposed transfer pricing models, this document serves as additional analysis in conjunction with our primary drafted proposal. The following visuals and scenario analysis will aid in the understanding of why the models differ and the reasoning behind our selection for which model to use. This acts as a visual analysis we would bring to the meeting to present to the committee.
+
+## **Background**
+
+To provide confidence in our understanding of the business, the following visuals have been created to break down how Global Investors Inc. current assets under management differ by subsidiary:
+
+```{r}
+# Creat df
+Subsidiary <- c("New York", "London", "Tokyo", "Singapore", "San Francisco")
+Equity <- c(70.2, 14.5, 6.2, 2.1, 0.0)
+FixedIncome <- c(36.3, 14.5, 4.0, 0.3, 0.2)
+Commodities <- c(5.9, 3.0, 2.2, 0.0, 0.6)
+
+aum <- tibble(Subsidiary, Equity, FixedIncome, Commodities)
+
+
+# gt
+aum_gt <- aum %>%
+  gt() %>%
+  tab_header(
+    title = "Investment Overview by Subsidiary"
+  ) %>% 
+  tab_style(
+    style = list(
+      cell_fill(color = "darkblue"),
+      cell_text(color = "white")
+    ),
+    locations = cells_title()
+  )
+# plot
+
+fig <- plot_ly(aum, x = ~Subsidiary)
+fig <- fig %>% add_trace(y = ~Equity, name = 'Equity', type = 'bar', marker = list(color = 'blue'))
+fig <- fig %>% add_trace(y = ~FixedIncome, name = 'Fixed Income', type = 'bar', marker = list(color = 'red'))
+fig <- fig %>% add_trace(y = ~Commodities, name = 'Commodities', type = 'bar', marker = list(color = 'green'))
+
+fig <- fig %>% layout(yaxis = list(title = 'Total Assets Under Management'), barmode = 'stack')
+
+aum_gt
+
+```
+
+```{r}
+fig
+```
+
+## **Traditional Model**
+
+Global Investors Inc. currently uses a cost-plus revenue allocation method. This method results in a small profit for all subsidiaries. The method allocates revenue as equal to the total costs of the subsidiaries plus 10%.
+
+#### **Expenses**
+
+Expenses are allocated on the following basis:
+
+-   Any directly traceable expenses are recorded in the Direct Controllable Cost category.
+-   When they could not be directly traced, the following allocation bases are used:
+    -   Sales Commissions: 50% of clients first year fees.
+    -   Occupancy: Pro rata based on sq. ft.
+    -   Travel Expenses: Bases on reason for trip.
+    -   Advertising: Actual or pro rata based on revenue.
+    -   Bank Charges: Charge to financial area.
+    -   Stationary, Meetings, Gifts, Postage, Misc. : All pro rata based on sq. ft.
+    -   All other main cost centers: Actual.
+    -   Other Allocated Costs: Reciprocal method.
+
+The plot below shows a breakdown of 2006 operating income for the parent and each subsidiary, under the current method (hover your mouse over each section to the see subsidiary name and operating income):
+
+```{r}
+cost_centers <- c("Trading", "Research", "Technology", "Financial Services", "Legal", "Operations", "Admin", "HR & Communications")
+
+tradprofit <- c(255771.6, 1758.6, 1720.9, 161.3, 223.3)
+
+tradprof <- tibble(Subsidiary, tradprofit)
+
+fig2 <- tradprof %>% plot_ly(type="treemap", labels = ~Subsidiary, parents="", values=~tradprofit, textinfo="label+value")
+
+
+
+fig2
+
+```
+
+## *Assets Under Management Allocation (Proposal 1)*
+
+This alternative model has a few key changes (proposed by Hoskins):
+
+-   The allocation base would be assets under management.
+-   Subsidiaries pay a royalty of around 50% to New York for R&D and trading strategies developed by them.
+-   London would receive 20% of total revenues.
+-   Argument is most of the assets managed by the subsidiaries belonged to New York clients.
+
+Here is two plots that show the Subsidiary Allocated Revenue from both the current model and proposal 1 (net of the royalty fee), for comparison:
+
+```{r}
+prop1 <- c()
+tradallocated <- c(26507, 20180, 4776.1, 8065.9)
+subsidiary <- c("London", "Tokyo", "Singapore", "San Francisco")
+tradrev <- tibble(subsidiary, tradallocated)
+fig3 <- tradrev %>% ggplot(aes(x=subsidiary, y=tradallocated, fill=subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Current Model", x="Subsidiary", y="Revenue (Thousands)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+prop1allocated <- c(61994.91, 24023.03, 4649.62, 1549.87)
+pro1rev <- tibble(subsidiary, prop1allocated)
+
+fig4 <- pro1rev %>% ggplot(aes(x=subsidiary, y=prop1allocated, fill=subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Proposal 1", x="Subsidiary", y="Net Revenue (Thousands)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot_grid(fig3, fig4, labels = "AUTO")
+
+
+```
+
+Note now London is receiving the bulk of the revenue, whilst the other subsidiaries share has dropped significantly. San francisco and Singapore flip in rank.
+
+## *Asset Distribution Based On Origin of Clients (Proposal 2)*
+
+This method (proposed by Davis), would see revenue allocated on asset distribution based on origin of the client.
+
+Here is proposal 2 allocated revenues charted alongside the current model:
+
+```{r}
+prop2allocated <- c(8524.3, 16273.7, 3874.7, 7749.4)
+
+prop2 <- tibble(subsidiary, prop2allocated)
+
+fig5 <- prop2 %>% ggplot(aes(x=subsidiary, y=prop2allocated, fill=subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Proposal 2", x="Subsidiary", y="Revenue (Thousands)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot_grid(fig3, fig5, labels = "AUTO")
+
+```
+
+## *Allocation Split Between Client Revenues & Investment Management Revenues(Proposal 3)*
+
+This allocation method (proposed by Hoskins) would see fee revenues split between Client Services and Investment Management, meaning GI's business units should be split accordingly. The following process would be followed:
+
+-   50% assigned to Client Services and allocated based on subsidiary revenue(equivalent to origin of clients).
+-   50% assigned to Investment Management and allocated based on assets under management.
+-   Widely used in the industry.
+
+The following shows this method charted against the current model:
+
+```{r}
+prop3allocated <- c(35259.6, 20148.3, 4262.2, 4649.6)
+
+prop3 <- tibble(subsidiary, prop3allocated)
+
+
+fig6 <- prop3 %>% ggplot(aes(x=subsidiary, y=prop3allocated, fill=subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Proposal 3", x="Subsidiary", y="Net Revenue (Thousands)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot_grid(fig3, fig6, labels = "AUTO")
+
+```
+
+Note here again London is taking a large portion of the allocated revenues.
+
+## *Investment Management Fully Recognized In New York (Proposal 4)*
+
+The last proposal (proposed by Davis and Freeman and working as an extension of proposal 3), would see subsidiaries recording revenues for client services, but Investment Management would be considered a New York Business unit only.
+
+-   Fee revenues corresponding to Investment Management (50%) recognized at headquarters.
+-   Subsidiaries reimbursed for any expenses related to investment management activities in their units plus 10% markup if these expenses qualify as direct controllable costs.
+-   This method takes proposal 3 and customizes it to better fit GII as a whole.
+
+Below you will see 4 charts. The first 2 compare the revenue allocation from the current model and proposal 4, and the following 2 compare operating income of just the subsidiaires:
+
+```{r}
+prop4allocated <- c(15379.8, 13031.6, 3103.8, 5800.1)
+
+prop4 <- tibble(subsidiary, prop4allocated)
+
+
+fig7 <- prop4 %>% ggplot(aes(x=subsidiary, y=prop4allocated, fill=subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Proposal 4", x="Subsidiary", y="Revenue (Thousands)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+plot_grid(fig3, fig7, labels = "AUTO")
+
+
+
+
+```
+
+```{r}
+fig8 <- tradprof %>% filter(Subsidiary != "New York") %>% ggplot(aes(x=Subsidiary, y=tradprofit, fill=Subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Current Model Op. Income", x="Subsidiary", y="Operating Income") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+prop4prof <- c(-9368.6, -5427.5, -1511.0, -2042.4)
+
+prop4.p <- tibble(subsidiary, prop4prof)
+
+fig9 <- prop4.p %>% ggplot(aes(x=subsidiary, y=prop4prof, fill=subsidiary)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="Proposal 4 Op. Income", x="Subsidiary", y="Operating Income") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+plot_grid(fig8, fig9, labels = "AUTO")
+```
+
+The proposal by Davis and Freeman puts all of the subsidiaries at an operating loss. Lets look at what happens to New Yorks Income:
+
+```{r}
+income <- c(255771.6,277985.3)
+
+method <- c("Current Model", "Proposal 4")
+
+ny <- tibble(method, income)
+
+fig10 <- ny %>% ggplot(aes(x=method, y=income, fill=method)) + 
+  geom_bar(stat="identity") + 
+  theme_minimal() +
+  labs(title="NY Operating Income", x="Subsidiary", y="Operating Income") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+fig10
+```
+
+Between the two methods, there is an immaterial difference between operating income for the New York office.

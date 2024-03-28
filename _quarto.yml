@@ -11,6 +11,7 @@ website:
       - pairsmodel.qmd
       - RBOBproj.qmd
       - assetclasses.qmd
+      - TPAnalysisGII.qmd
 
 format:
   html:
